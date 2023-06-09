@@ -1,0 +1,10 @@
+__pycache__
+.gitignore
+test.py
+todo.md
+test.txt
+yararules.yar.txt
+yarabackupcode.py
+tempCodeRunnerFile.py
+transitions.py
+backup_code.py
