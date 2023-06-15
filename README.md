@@ -10,12 +10,17 @@ A desktop application written purely in python using [customtkinter](https://cus
 ## Features
 
 - Create and test regex
-- Load local files such as log filesregex matching (Filters for unique rows)
+- Query data from an elasticsearch REST API. 
+  - Select a field to retrieve data from, create a query (e.g. tags: "_grokparsefailure")
+  - Auto discovers available indices and fields 
+  - HTTP Basic auth, API-Token, SSL Cert
+- Load local text files 
+  - Filter to load unique rows
 - Load local grok patterns 
-- Save created regex pattern to grok patterns file
-- Test loaded or created grok patterns against data to get statistics on grok pattern applicabiltiy and efficiency
-- Filter grok patterns to only test a selected group or instances
-- Query data from an elasticsearch cluster. Support selecting a field to retrieve data from, create a query (e.g. tags: "_grokparsefailure"), HTTP Basic auth, API-Token.
+- Test grok patterns to see how applicable they are
+  - Tests every pattern towards every row 
+  - Filter which grok patterns that should be tested (include/exclude) 
+- Export grok patterns
 - Dark and Light mode
   
 ### Light Mode
@@ -23,6 +28,7 @@ A desktop application written purely in python using [customtkinter](https://cus
 
 ### Dark Mode
 ![user interface - Light Mode](https://github.com/H4NM/Groppy/blob/main/img/user_interface_dark.png)
+<<<<<<< HEAD
 
 
 #### Pending progress 2023-06-15
@@ -33,3 +39,5 @@ A desktop application written purely in python using [customtkinter](https://cus
 #### Desired features
 
 - Adding a config file where color schemas and other settings may be specified and loaded on application start.
+=======
+>>>>>>> 2920d8778aa9780538d7005b3995f2439b9020e6
