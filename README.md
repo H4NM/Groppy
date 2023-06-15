@@ -23,3 +23,13 @@ A desktop application written purely in python using [customtkinter](https://cus
 
 ### Dark Mode
 ![user interface - Light Mode](https://github.com/H4NM/Groppy/blob/main/img/user_interface_dark.png)
+
+
+#### Pending progress 2023-06-15
+
+- Simplifying left sidebar by separating local file inclusions and elasticsearch data retrieval
+- Adding the feature of loading a json file and enabling a similar field retrieval as for the query of field data from elasticsearch. i.e. you'll be able to specify which key from where data will be read from one or multiple json objects directly from a file.
+
+#### Desired features
+
+- Adding a config file where color schemas and other settings may be specified and loaded on application start.
