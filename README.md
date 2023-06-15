@@ -28,7 +28,6 @@ A desktop application written purely in python using [customtkinter](https://cus
 
 ### Dark Mode
 ![user interface - Light Mode](https://github.com/H4NM/Groppy/blob/main/img/user_interface_dark.png)
-<<<<<<< HEAD
 
 
 #### Pending progress 2023-06-15
@@ -39,5 +38,3 @@ A desktop application written purely in python using [customtkinter](https://cus
 #### Desired features
 
 - Adding a config file where color schemas and other settings may be specified and loaded on application start.
-=======
->>>>>>> 2920d8778aa9780538d7005b3995f2439b9020e6
