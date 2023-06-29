@@ -25,14 +25,75 @@ class CustomSheet(Sheet):
                                 "right_click_popup_menu",
                                 "copy"
         )
-        
-    def update_color_scheme(self):
+
+    def adapt_theme(self, mode):
+        if mode == "dark":
+            table_bg="#3D3D3D" 
+            top_left_bg="#3D3D3D"
+            popup_menu_bg="#3D3D3D" 
+            header_bg="#4E4E4E" 
+            index_bg="#4E4E4E"
+        else:
+            table_bg="#3D3D3D" 
+            top_left_bg="#3D3D3D"
+            popup_menu_bg="#3D3D3D" 
+            header_bg="#4E4E4E" 
+            index_bg="#4E4E4E"
+
+        theme = {
+            "popup_menu_fg": "#000000",
+            "popup_menu_bg": popup_menu_bg,
+            "popup_menu_highlight_bg": "#DCDEE0",
+            "popup_menu_highlight_fg": "#000000",
+            "index_hidden_rows_expander_bg": "gray30",
+            "header_hidden_columns_expander_bg": "gray30",
+            "header_bg": header_bg,
+            "header_border_fg": "#ababab",
+            "header_grid_fg": "#ababab",
+            "header_fg": "black",
+            "header_selected_cells_bg": "#d6d4d2",
+            "header_selected_cells_fg": "#217346",
+            "index_bg": index_bg,
+            "index_border_fg": "#ababab",
+            "index_grid_fg": "#ababab",
+            "index_fg": "black",
+            "index_selected_cells_bg": "#d6d4d2",
+            "index_selected_cells_fg": "#217346",
+            "top_left_bg": top_left_bg,
+            "top_left_fg": "#b7b7b7",
+            "top_left_fg_highlight": "#5f6368",
+            "table_bg": table_bg,
+            "table_grid_fg": "#bfbfbf",
+            "table_fg": "black",
+            "table_selected_cells_border_fg": "#217346",
+            "table_selected_cells_bg": "#E3E3E3",
+            "table_selected_cells_fg": "black",
+            "resizing_line_fg": "black",
+            "drag_and_drop_bg": "black",
+            "outline_color": "gray2",
+            "header_selected_columns_bg": "#d3f0e0",
+            "header_selected_columns_fg": "#217346",
+            "index_selected_rows_bg": "#d3f0e0",
+            "index_selected_rows_fg": "#217346",
+            "table_selected_rows_border_fg": "#217346",
+            "table_selected_rows_bg": "#E3E3E3",
+            "table_selected_rows_fg": "black",
+            "table_selected_columns_border_fg": "#217346",
+            "table_selected_columns_bg": "#E3E3E3",
+            "table_selected_columns_fg": "black",
+        }
+        return theme
+    
+    def update_color_scheme(self, mode=default_main_color, **kwargs):
         #£ Add color update based on the imported theme
         #£ C:\Users\Asus\Desktop\Programmering\git\Groppy\Lib\site-packages\tksheet\_tksheet_vars
         #Pseudo: After theme is imported, retrieve defined colors to update sheet with
         # Check appearance switch function for white dark mode
-        pass
-  
+        # continue here theme = self.adapt_theme(mode, )
+        self.set_options(**theme, redraw=False)
+        self.config(bg=theme["table_bg"])
+        
+
     def get_patterns(self, pattern_filter_list: list) -> list:
         selected_rows = self.get_selected_rows(get_cells=False, get_cells_as_rows=True)
         for row in selected_rows:

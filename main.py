@@ -915,7 +915,12 @@ class Groppy(customtkinter.CTk):
         for object in self.table_list:
             object.change_theme(theme=self.main_color+" "+self.sub_color)
             if self.main_color == "dark":
-                object.set_options(table_bg="#3D3D3D", top_left_bg="#3D3D3D",frame_bg="#3D3D3D", popup_menu_bg="#3D3D3D", header_bg="#4E4E4E", index_bg="#4E4E4E")
+                object.set_options(table_bg="#3D3D3D", 
+                                   top_left_bg="#3D3D3D",
+                                   frame_bg="#3D3D3D", 
+                                   popup_menu_bg="#3D3D3D", 
+                                   header_bg="#4E4E4E", 
+                                   index_bg="#4E4E4E")
             
     def get_color_switch_label(self) -> str:
         return self.main_color.capitalize() + " Mode"
