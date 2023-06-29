@@ -12,7 +12,7 @@ def get_request_elastic(url: str, credentials: str=None, request_body: dict=None
         raise ConnectionError(response.text)
     return response
 
-def retrieve_requested_field(es_response: dict, field: str, unique: bool=True) -> list:
+def extract_es_field_data(es_response: dict, field: str, unique: bool=True) -> list:
     field_list = []
     for doc in es_response['hits']['hits']:
         if 'fields' in doc:
@@ -21,7 +21,6 @@ def retrieve_requested_field(es_response: dict, field: str, unique: bool=True) -
                 continue
             field_list.append(data_from_field)
     return field_list
-
 
 def populate_json(field: str, query: str) -> dict:
     return {

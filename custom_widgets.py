@@ -1,11 +1,22 @@
 import customtkinter, re
 from settings import *
-from regex_funcs import valid_regex
+from other_funcs import valid_regex
 from tksheet import Sheet
+
+class CustomTabView(customtkinter.CTkTabview):
+    
+    def __init__(self, *args: any, **kwargs: any):
+        super().__init__(*args, **kwargs)
+        # Will add font support when tkinter supports it
+
 
 class CustomSheet(Sheet):
     def __init__(self, *args: any, **kwargs: any):
-        Sheet.__init__(self, *args, **kwargs)
+        super().__init__(*args, 
+                         **kwargs, 
+                         font=sheet_font,
+                         popup_menu_font=sheet_font,
+                         header_font=sheet_header_font)
         self.enable_bindings(
                                 "single_select",
                                 "drag_select",
@@ -14,6 +25,13 @@ class CustomSheet(Sheet):
                                 "right_click_popup_menu",
                                 "copy"
         )
+        
+    def update_color_scheme(self):
+        #£ Add color update based on the imported theme
+        #£ C:\Users\Asus\Desktop\Programmering\git\Groppy\Lib\site-packages\tksheet\_tksheet_vars
+        #Pseudo: After theme is imported, retrieve defined colors to update sheet with
+        # Check appearance switch function for white dark mode
+        pass
   
     def get_patterns(self, pattern_filter_list: list) -> list:
         selected_rows = self.get_selected_rows(get_cells=False, get_cells_as_rows=True)
@@ -45,30 +63,39 @@ class CustomSheet(Sheet):
 
         return filter_list
     
-
 class CustomMessagebox(customtkinter.CTkToplevel):
     def __init__(self, title: str="", label: str="", text: str="", geometry: str="", *args: any, **kwargs: any):
-        customtkinter.CTkToplevel.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.wm_iconbitmap(app_icon)
-        
+
         self.title(title)
         self.geometry(geometry)
         self.grid_columnconfigure((0), weight=1)
         self.grid_rowconfigure((0,1,2), weight=1)
         self.resizable(False,False)
-        message_label = customtkinter.CTkLabel(self, text=label)
+        message_label = customtkinter.CTkLabel(self, 
+                                               text=label, 
+                                               font=small_font)
         message_label.grid(row=0, column=0, padx=50, pady=(20,10),sticky="nsew")
         if text:
-            message_text = customtkinter.CTkTextbox(self,height=70)
+            message_text = customtkinter.CTkTextbox(self,
+                                                    height=70,
+                                                    font=small_font)
             message_text.grid(row=1, column=0, padx=10, pady=(0,10), sticky="nsew")
             message_text.insert("0.0", text)
             message_text.configure(state="disabled")
-        ok_button = customtkinter.CTkButton(self, text="OK", command=self.destroy, width=40, font=customtkinter.CTkFont(size=14))
+        ok_button = customtkinter.CTkButton(self, 
+                                            text="OK", 
+                                            command=self.destroy, 
+                                            width=40, 
+                                            font=medium_font)
         ok_button.grid(row=2, column=0, padx=10, pady=(0,10), sticky="ns")
             
+        self.attributes("-topmost", True)
+
 class CustomTextBox(customtkinter.CTkTextbox):
     def __init__(self, *args: any, **kwargs: any):
-        customtkinter.CTkTextbox.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.tag_config("match", foreground=highlight_fg_color, background="")
 
     def highlight(self, tag: str, start: str, end: str):

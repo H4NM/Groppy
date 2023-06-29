@@ -1,9 +1,13 @@
-import regex_funcs, es_funcs
+#Custom modules
+import other_funcs, es_funcs
 from settings import *
-import re, customtkinter
+
+#External modules
+import re, customtkinter, json
 from threading import Thread
-from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet
+from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomTabView
 from PIL import Image
+from typing import Union
 
 class Groppy(customtkinter.CTk):
     def __init__(self):
@@ -31,23 +35,26 @@ class Groppy(customtkinter.CTk):
         self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10,11,12,13,14), weight=1)
         self.grid_columnconfigure((0,15,16), weight=0)
         self.grid_rowconfigure((1), weight=3)
+     
 
     def declare_variables(self):
         """
         Declares variables
         """
-        self.log_box_font=('Arial',15,'bold')
+        self.log_box_font=log_box_font
         self.created_patterns = 1
         self.auto_match = True
         self.bg_highlight = False
         self.es_indicies = []
         self.es_fields = []
+        self.json_fields = []
         self.include=[]
         self.exclude=[]
         self.include_sign="\U00002714"
         self.exclude_sign="\U0000274C"
         self.filter_list = [self.include, self.exclude]
         self.table_list = set()
+        
         self.main_color = default_main_color 
         self.sub_color = default_sub_color
 
@@ -66,170 +73,319 @@ class Groppy(customtkinter.CTk):
         """
         Initializes the left sidebar of the window and all of the components inside
         """
-        self.sidebar_frame_left = customtkinter.CTkFrame(self,  corner_radius=0,width=left_sidebar_size)
+        self.sidebar_frame_left = customtkinter.CTkFrame(self, corner_radius=0, width=left_sidebar_size)
         self.sidebar_frame_left.grid(row=0, column=0, rowspan=4, sticky="nsew")
-        self.sidebar_frame_left.grid_rowconfigure(4, weight=1)
+        self.sidebar_frame_left.grid_rowconfigure(6, weight=1)
+    
+        self.load_field_label = customtkinter.CTkLabel(self.sidebar_frame_left, 
+                                                       text=load_field_label, 
+                                                       font=medium_font)
+        self.load_field_label.grid(row=0, column=0, columnspan=5, padx=10, pady=(5, 0), sticky="n")
+        
+        ### LOAD FIELD TABVIEW 
+        self.load_data_tabview =  CustomTabView(self.sidebar_frame_left, 
+                                                width=220)
+        self.load_data_tabview.add(load_data_tabview_local_file)
+        self.load_data_tabview.add(load_data_tabview_es)
 
-        ### LFI - Frame
-        self.sidebar_lfi_frame_left = customtkinter.CTkFrame(self.sidebar_frame_left, corner_radius=5)
-        self.sidebar_lfi_frame_left.grid(row=0, column=0,columnspan=2, padx=(30,30),pady=(10,0), sticky="new")
-        self.sidebar_lfi_frame_left.grid_columnconfigure((1,2), weight=1)
-        self.sidebar_lfi_frame_left.grid_rowconfigure((1,2,3), weight=1)
+        self.load_data_tabview.grid(row=1, column=0, columnspan=2,  padx=(30,30), sticky="new")
+        self.load_data_tabview.tab(load_data_tabview_es).grid_columnconfigure((0,1), weight=0) 
+        self.load_data_tabview.tab(load_data_tabview_local_file).grid_columnconfigure((0,1), weight=1) 
+
+        #### Logg File Tabview
+        self.initialize_local_file_tabview()
+
+        #### Elasticsearch Tabview
+        self.initialize_es_tabview()
+
+        ### APPEARANCE FRAME
+        self.sidebar_appearance_frame_left = customtkinter.CTkFrame(self.sidebar_frame_left, corner_radius=5)
+        self.sidebar_appearance_frame_left.grid(row=9, column=0,columnspan=2, padx=(30,30),pady=(10,10), sticky="new")
+        self.sidebar_appearance_frame_left.grid_columnconfigure((1,2,3), weight=1)
+        self.sidebar_appearance_frame_left.grid_rowconfigure((0,1,2,3), weight=1)
+
+        ### APPEARANCE LABEL
+        self.appearance_label = customtkinter.CTkLabel(self.sidebar_appearance_frame_left, 
+                                                       text=appearance_frame_label, 
+                                                       font=medium_font)
+        self.appearance_label.grid(row=0, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="n")
         
-        self.lfi_label = customtkinter.CTkLabel(self.sidebar_lfi_frame_left, text=lfi_frame_label, font=customtkinter.CTkFont(size=left_label_es_size))
-        self.lfi_label.grid(row=0, column=0, columnspan=5, padx=10, pady=(5, 0), sticky="n")
+        ### PATTERNS SWITCH
+        self.patterns_frame_switch = customtkinter.CTkCheckBox(master=self.sidebar_appearance_frame_left, 
+                                                               command=self.toggle_patterns_frame, 
+                                                               text=patterns_appear_switch_label,
+                                                               checkbox_width=checkbox_size,
+                                                               checkbox_height=checkbox_size)
+        self.patterns_frame_switch.grid(row=1, column=0,columnspan=2,padx=20, pady=(5, 0), sticky="w")
         
-        self.sidebar_button_logfile = customtkinter.CTkButton(master=self.sidebar_lfi_frame_left, text=lfi_log_button_name, command=self.read_log,  width=10)
-        self.sidebar_button_logfile.grid(row=1, column=0, columnspan=3, padx=(10,0), pady=10, sticky="we")
+        ### STATS SWITCH
+        self.patterns_stats_frame_switch = customtkinter.CTkCheckBox(master=self.sidebar_appearance_frame_left, 
+                                                                     command=self.toggle_stats_frame, 
+                                                                     text=stats_appear_switch_label,
+                                                                     checkbox_width=checkbox_size,
+                                                                     checkbox_height=checkbox_size)
+        self.patterns_stats_frame_switch.grid(row=2, column=0,columnspan=2,padx=20, pady=(5, 5), sticky="w")
+
+        ### APPEARANCE SWITCH
+        self.switch_main_appearance = customtkinter.CTkSwitch(master=self.sidebar_appearance_frame_left, 
+                                                              command=self.change_appearance_main_color, 
+                                                              text=self.get_color_switch_label(),
+                                                              font=medium_font)
+        self.switch_main_appearance.grid(row=3, column=0, columnspan=2,padx=20, pady=(0, 5), sticky="w")
+
+    def initialize_local_file_tabview(self):
+        ### SIDEBAR BUTTON LOGFILE
+        self.sidebar_button_logfile = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                              text=lfi_log_button_name, 
+                                                              command=self.read_log,  
+                                                              width=10,
+                                                              font=small_font)
+        self.sidebar_button_logfile.grid(row=0, column=0, columnspan=4, padx=(10,0), pady=10, sticky="we")
         
-        self.unique_logfile_lines_switch = customtkinter.CTkCheckBox(master=self.sidebar_lfi_frame_left, width=20,command=self.toggle_get_unique_logfile_lines, text=lfi_unique_fields_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.unique_logfile_lines_switch.grid(row=1, column=4,columnspan=2,padx=(5,10), pady=(5, 0))
+        ### SIDEBAR SWITCH UNIQUE LINES
+        self.unique_logfile_lines_switch = customtkinter.CTkCheckBox(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                                     width=20,
+                                                                     command=self.toggle_get_unique_logfile_lines, 
+                                                                     text=lfi_unique_fields_label,
+                                                                     checkbox_width=checkbox_size,
+                                                                     checkbox_height=checkbox_size)
+        self.unique_logfile_lines_switch.grid(row=0, column=5, padx=(5,10), pady=(5, 0))
         self.unique_logfile_lines_switch.select()
         
-        self.sidebar_button_patternlocation = customtkinter.CTkButton(self.sidebar_lfi_frame_left, text=lfi_pattern_button_name, command=self.read_patterns, width=10)
-        self.sidebar_button_patternlocation.grid(row=2, column=0, columnspan=5, padx=10, pady=5, sticky="we")
-       
-        ### ELASTICSEARCH - Frame
-        self.sidebar_es_frame_left = customtkinter.CTkFrame(self.sidebar_frame_left, corner_radius=5)
-        self.sidebar_es_frame_left.grid(row=4, column=0, columnspan=2, padx=(30,30),pady=(10,0), sticky="new")
+        ### SIDEBAR BUTTON GROK PATTERNS
+        self.sidebar_button_patternlocation = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                                      text=lfi_pattern_button_name, 
+                                                                      command=self.read_patterns, 
+                                                                      width=10,
+                                                                      font=small_font)
+        self.sidebar_button_patternlocation.grid(row=1, column=0, columnspan=6, padx=10, pady=(5,10), sticky="we")
+
+        ### SIDERBAR BUTTON JSON LOCATION        
+        self.sidebar_button_jsonlocation = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                                   text=lfi_json_file_button_name, 
+                                                                   command=self.read_json, 
+                                                                   width=10,
+                                                                   font=small_font)
+        self.sidebar_button_jsonlocation.grid(row=2, column=0, columnspan=4, padx=(10,0), pady=10, sticky="we")
+
+        ### SIDEBAR JSONFILE SWITCH UNIQUE LINES
+        self.unique_jsonfile_lines_switch = customtkinter.CTkCheckBox(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                                      width=20,
+                                                                      command=self.toggle_get_unique_jsonfile_results, 
+                                                                      text=lfi_unique_fields_label,
+                                                                      checkbox_width=checkbox_size,
+                                                                      checkbox_height=checkbox_size)
+        self.unique_jsonfile_lines_switch.grid(row=2, column=5, padx=(5,10), pady=(5, 0))
+        self.unique_jsonfile_lines_switch.select()
+
+        ### JSON FIELD LABEL
+        self.json_field_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                       text=es_field_label_text,
+                                                       font=small_font)
+        self.json_field_label.grid(row=3, column=0, padx=(5,0))
         
-        ### ES LABEL
-        self.es_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_frame_label, font=customtkinter.CTkFont(size=left_label_es_size))
-        self.es_label.grid(row=0, column=0, columnspan=3, padx=20, pady=5, sticky="n")
+        ### JSON FIELD ENTRY
+        self.json_field_entry_dv = customtkinter.StringVar()
+        self.json_field_entry_dv.trace_add("write", self.json_field_autocomplete_callback)
         
+        ### JSON FIELD COMBOBOX
+        self.json_field_combobox = customtkinter.CTkComboBox(self.load_data_tabview.tab(load_data_tabview_local_file),
+                                                            variable=self.json_field_entry_dv, 
+                                                            values=self.json_fields, 
+                                                            height=left_es_entry_height)
+        
+        self.json_field_combobox.grid(row=3, column=1, columnspan=5, padx=(5,10),pady=5)
+
+        ### JSON BUTTON GET FIELDS
+        self.sidebar_button_json_fields = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_local_file), 
+                                                                  text=getjsonfield_button_name, 
+                                                                  compound="left",
+                                                                  image=self.getesfields_button_img,
+                                                                  command=lambda: self.compute(self.get_json_field_data),
+                                                                  font=small_font)
+                                                                  
+        self.sidebar_button_json_fields.grid(row=4, column=0, columnspan=6, padx=10, pady=(5,10), sticky="we")
+
+
+
+    def initialize_es_tabview(self):
         ### ES HOST LABEL
-        self.es_host_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_hostname_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_host_label.grid(row=1, column=0, padx=(5,0), sticky="we")
-        
+        self.es_host_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    text=es_hostname_label_text,
+                                                    font=small_font)
+        self.es_host_label.grid(row=0, column=0, padx=(5,0), sticky="we")
+       
         ### ES HOST ENTRY
-        self.es_host_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left, placeholder_text=es_bogus_hostname, height=left_es_entry_height)
-        self.es_host_entry.grid(row=1, column=1, columnspan=2, padx=(5,10), sticky="w")
-        
+        self.es_host_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    placeholder_text=es_bogus_hostname, 
+                                                    height=left_es_entry_height)
+        self.es_host_entry.grid(row=0, column=1, columnspan=2, padx=(5,10), sticky="w")
+
         ### ES PORT LABEL
-        self.es_port_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_port_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_port_label.grid(row=2, column=0, padx=(5,0), sticky="we")
+        self.es_port_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    text=es_port_label_text,
+                                                    font=small_font)
+        self.es_port_label.grid(row=1, column=0, padx=(5,0), sticky="we")
         
         ### ES PORT ENTRY
-        self.es_port_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left, placeholder_text=es_bogus_port, height=left_es_entry_height)
-        self.es_port_entry.grid(row=2, column=1, columnspan=2, padx=(5,10), sticky="w")
-
+        self.es_port_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    placeholder_text=es_bogus_port, 
+                                                    height=left_es_entry_height)
+        self.es_port_entry.grid(row=1, column=1, columnspan=2, padx=(5,10), sticky="w")
+       
         ### ES AUTH SWITCH
-        self.auth_switch = customtkinter.CTkCheckBox(master=self.sidebar_es_frame_left, command=self.toggle_es_auth, text=es_basic_auth_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.auth_switch.grid(row=3, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
+        self.auth_switch = customtkinter.CTkCheckBox(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                     command=self.toggle_es_auth, 
+                                                     text=es_basic_auth_label,
+                                                     checkbox_width=checkbox_size,
+                                                     checkbox_height=checkbox_size)
+        
+        self.auth_switch.grid(row=2, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
         
         ### ES USERNAME LABEL
-        self.es_username_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_username_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_username_label.grid(row=4, column=0, padx=(5,0), sticky="w")
+        self.es_username_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                        text=es_username_label_text,
+                                                        font=small_font)
+        
+        self.es_username_label.grid(row=3, column=0, padx=(5,0), sticky="w")
 
         ### ES USERNAME ENTRY
-        self.es_username_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left, height=left_es_entry_height,placeholder_text=es_bogus_username)
-        self.es_username_entry.grid(row=4, column=1,columnspan=2, padx=(5,10), sticky="w")
+        self.es_username_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                        height=left_es_entry_height,
+                                                        placeholder_text=es_bogus_username)
+        
+        self.es_username_entry.grid(row=3, column=1,columnspan=2, padx=(5,10), sticky="w")
 
         ### ES PASSWORD LABEL
-        self.es_password_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_password_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_password_label.grid(row=5, column=0, padx=(5,0), sticky="w")
+        self.es_password_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                        text=es_password_label_text,
+                                                        font=small_font)
+        self.es_password_label.grid(row=4, column=0, padx=(5,0), sticky="w")
 
         ### ES PASSWORD ENTRY
-        self.es_password_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left,  height=left_es_entry_height, placeholder_text=es_bogus_password)
-        self.es_password_entry.grid(row=5, column=1,columnspan=2, padx=(5,10), sticky="w")
+        self.es_password_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es),  
+                                                        height=left_es_entry_height, 
+                                                        placeholder_text=es_bogus_password)
+        self.es_password_entry.grid(row=4, column=1,columnspan=2, padx=(5,10), sticky="w")
 
         ### ES API KEY SWITCH
-        self.api_key_switch = customtkinter.CTkCheckBox(master=self.sidebar_es_frame_left, command=self.toggle_es_api, text=es_api_key_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.api_key_switch.grid(row=6, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
+        self.api_key_switch = customtkinter.CTkCheckBox(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                        command=self.toggle_es_api, 
+                                                        text=es_api_key_label,
+                                                        checkbox_width=checkbox_size,
+                                                        checkbox_height=checkbox_size)
+        self.api_key_switch.grid(row=5, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
 
         ### API KEY LABEL
-        self.api_key_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_api_key_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.api_key_label.grid(row=7, column=0, padx=(5,0), sticky="w")
+        self.api_key_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    text=es_api_key_label_text,
+                                                    font=small_font)
+        self.api_key_label.grid(row=6, column=0, padx=(5,0), sticky="w")
 
         ### API KEY ENTRY
-        self.api_key_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left, height=left_es_entry_height,placeholder_text=es_bogus_api_key)
-        self.api_key_entry.grid(row=7, column=1,columnspan=2, padx=(5,10), sticky="we")
+        self.api_key_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    height=left_es_entry_height,
+                                                    placeholder_text=es_bogus_api_key)
+        self.api_key_entry.grid(row=6, column=1,columnspan=2, padx=(5,10), sticky="we")
 
         ### ES CERT SWITCH
-        self.es_cert_switch = customtkinter.CTkCheckBox(master=self.sidebar_es_frame_left, command=self.toggle_es_cert, text=es_cert_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.es_cert_switch.grid(row=8, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
+        self.es_cert_switch = customtkinter.CTkCheckBox(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                        command=self.toggle_es_cert, 
+                                                        text=es_cert_label,
+                                                        checkbox_width=checkbox_size,
+                                                        checkbox_height=checkbox_size)
+        
+        self.es_cert_switch.grid(row=7, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
 
         ### CERT LABEL
-        self.es_cert_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_cert_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_cert_label.grid(row=9, column=0, padx=(5,0), sticky="w")
+        self.es_cert_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    text=es_cert_label_text,
+                                                    font=small_font)
+        self.es_cert_label.grid(row=8, column=0, padx=(5,0), sticky="w")
 
         ### CERT ENTRY
-        self.es_cert_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left, height=left_es_entry_height, placeholder_text=es_bogus_cert)
-        self.es_cert_entry.grid(row=9, column=1,columnspan=2, padx=(5,10), sticky="we")
+        self.es_cert_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                    height=left_es_entry_height, 
+                                                    placeholder_text=es_bogus_cert)
+        self.es_cert_entry.grid(row=8, column=1,columnspan=2, padx=(5,10), sticky="we")
 
         ### ES TEST CONNECTION BUTTON
-        self.sidebar_button_es_conn = customtkinter.CTkButton(self.sidebar_es_frame_left, text=conn_test_button_name, command=lambda: self.compute(self.test_es_connection))
-        self.sidebar_button_es_conn.grid(row=10, column=0, columnspan=3,padx=5, pady=10)
+        self.sidebar_button_es_conn = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                              text=conn_test_button_name, 
+                                                              command=lambda: self.compute(self.test_es_connection),
+                                                              font=small_font)
+        self.sidebar_button_es_conn.grid(row=9, column=0, columnspan=3,padx=5, pady=10)
         
         ### ES INDEX LABEL
-        self.es_index_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_index_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_index_label.grid(row=11, column=0, padx=(5,0), sticky="w")
+        self.es_index_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                     text=es_index_label_text,
+                                                     font=small_font)
+        self.es_index_label.grid(row=10, column=0, padx=(5,0), sticky="w")
         
         ### ES INDEX ENTRY
         self.es_index_entry_dv = customtkinter.StringVar()
         self.es_index_entry_dv.trace_add("write", self.index_autocomplete_callback)
         
         ### ES INDEX COMBOBOX
-        self.es_index_combobox = customtkinter.CTkComboBox(self.sidebar_es_frame_left, variable=self.es_index_entry_dv, values=self.es_indicies, height=left_es_entry_height)
-        self.es_index_combobox.grid(row=11, column=1,columnspan=2, padx=(5,10),pady=5, sticky="we")
+        self.es_index_combobox = customtkinter.CTkComboBox(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                           variable=self.es_index_entry_dv, 
+                                                           values=self.es_indicies, 
+                                                           height=left_es_entry_height)
+        self.es_index_combobox.grid(row=10, column=1,columnspan=2, padx=(5,10),pady=5, sticky="we")
         
         ### ES FIELD LABEL
-        self.es_field_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_field_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_field_label.grid(row=12, column=0, padx=(5,0), sticky="w")
+        self.es_field_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                     text=es_field_label_text,
+                                                     font=small_font)
+        self.es_field_label.grid(row=11, column=0, padx=(5,0), sticky="w")
         
         ### ES FIELD ENTRY
         self.es_field_entry_dv = customtkinter.StringVar()
-        self.es_field_entry_dv.trace_add("write", self.field_autocomplete_callback)
+        self.es_field_entry_dv.trace_add("write", self.es_field_autocomplete_callback)
         
         ### ES FIELD COMBOBOX
-        self.es_field_combobox = customtkinter.CTkComboBox(self.sidebar_es_frame_left, variable=self.es_field_entry_dv, values=self.es_fields, height=left_es_entry_height)
-        self.es_field_combobox.grid(row=12, column=1,columnspan=2, padx=(5,10),pady=5, sticky="we")
+        self.es_field_combobox = customtkinter.CTkComboBox(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                           variable=self.es_field_entry_dv, 
+                                                           values=self.es_fields, 
+                                                           height=left_es_entry_height)
+        self.es_field_combobox.grid(row=11, column=1,columnspan=2, padx=(5,10),pady=5, sticky="we")
         
         ### ES QUERY LABEL
-        self.es_query_label = customtkinter.CTkLabel(self.sidebar_es_frame_left, text=es_query_label_text,font=customtkinter.CTkFont(size=left_label_size, weight="bold"))
-        self.es_query_label.grid(row=13, column=0, padx=(5,0), sticky="w")
+        self.es_query_label = customtkinter.CTkLabel(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                     text=es_query_label_text,
+                                                     font=small_font)
+        self.es_query_label.grid(row=12, column=0, padx=(5,0), sticky="w")
         
         ### ES QUERY ENTRY
-        self.es_query_entry = customtkinter.CTkEntry(self.sidebar_es_frame_left, placeholder_text=es_bogus_query, height=left_es_entry_height)
-        self.es_query_entry.grid(row=13, column=1,columnspan=2, padx=(5,10),pady=5, sticky="we")
+        self.es_query_entry = customtkinter.CTkEntry(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                     placeholder_text=es_bogus_query, 
+                                                     height=left_es_entry_height)
+        self.es_query_entry.grid(row=12, column=1,columnspan=2, padx=(5,10),pady=5, sticky="we")
         
         ### GET UNIQUE ENTRIES
-        self.es_unique_data_switch = customtkinter.CTkCheckBox(master=self.sidebar_es_frame_left, command=self.toggle_get_unique_es_results, text=es_unique_lines_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.es_unique_data_switch.grid(row=14, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
+        self.es_unique_data_switch = customtkinter.CTkCheckBox(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                               command=self.toggle_get_unique_es_results, 
+                                                               text=es_unique_lines_label,
+                                                               checkbox_width=checkbox_size,
+                                                               checkbox_height=checkbox_size)
+        self.es_unique_data_switch.grid(row=13, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
         self.es_unique_data_switch.select()
 
         ### ES BUTTON GET FIELDS
-        self.sidebar_button_es_fields = customtkinter.CTkButton(self.sidebar_es_frame_left, text=getesfield_button_name,compound="left", image=self.getesfields_button_img, command=lambda: self.compute(self.get_es_field_data))
-        self.sidebar_button_es_fields.grid(row=15, column=0, columnspan=3, padx=5, pady=10)
-
-        ### APPEARANCE FRAME
-        self.sidebar_appearance_frame_left = customtkinter.CTkFrame(self.sidebar_frame_left, corner_radius=5)
-        self.sidebar_appearance_frame_left.grid(row=5, column=0,columnspan=2, padx=(30,30),pady=(10,10), sticky="new")
-        self.sidebar_appearance_frame_left.grid_columnconfigure((1,2,3), weight=1)
-        self.sidebar_appearance_frame_left.grid_rowconfigure((0,1,2,3), weight=1)
-
-        ### APPEARANCE LABEL
-        self.appearance_label = customtkinter.CTkLabel(self.sidebar_appearance_frame_left, text=appearance_frame_label, font=customtkinter.CTkFont(size=left_label_es_size))
-        self.appearance_label.grid(row=0, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="n")
-        
-        ### PATTERNS SWITCH
-        self.patterns_frame_switch = customtkinter.CTkCheckBox(master=self.sidebar_appearance_frame_left, command=self.toggle_patterns_frame, text=patterns_appear_switch_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.patterns_frame_switch.grid(row=1, column=0,columnspan=2,padx=20, pady=(5, 0), sticky="w")
-        
-        ### STATS SWITCH
-        self.patterns_stats_frame_switch = customtkinter.CTkCheckBox(master=self.sidebar_appearance_frame_left, command=self.toggle_stats_frame, text=stats_appear_switch_label,checkbox_width=checkbox_size,checkbox_height=checkbox_size)
-        self.patterns_stats_frame_switch.grid(row=2, column=0,columnspan=2,padx=20, pady=(5, 5), sticky="w")
-
-        ### APPEARANCE SWITCH
-        self.switch_main_appearance = customtkinter.CTkSwitch(master=self.sidebar_appearance_frame_left, command=self.change_appearance_main_color, text=self.get_color_switch_label())
-        self.switch_main_appearance.grid(row=3, column=0, columnspan=2,padx=20, pady=(0, 5), sticky="w")
+        self.sidebar_button_es_fields = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_es), 
+                                                                text=getesfield_button_name,
+                                                                compound="left", 
+                                                                image=self.getesfields_button_img, 
+                                                                command=lambda: self.compute(self.get_es_field_data),
+                                                                font=small_font)
+        self.sidebar_button_es_fields.grid(row=14, column=0, columnspan=3, padx=5, pady=10)
 
     def initialize_middle_components(self):
         """
         Initializes the components in the middle of the window
         """
         self.textbox_log = CustomTextBox(self, font=self.log_box_font)
-        self.textbox_log.grid(row=1, column=1, columnspan=15,pady=(10,20), padx=20, sticky="nsew")
+        self.textbox_log.grid(row=1, column=1, columnspan=15, pady=(10,20), padx=20, sticky="nsew")
         self.update_textbox(self.textbox_log, bogus_textbox_text, editable=True)
 
         ### MIDDLE FRAME - LOADING BOX
@@ -242,7 +398,12 @@ class Groppy(customtkinter.CTk):
         self.regexp_entry.grid(row=0,column=1, columnspan=13, padx=(20, 0),pady=(20, 20), sticky="we")
 
         ### MIDDLE FRAME - MATCH BUTTON
-        self.match_entry_button = customtkinter.CTkButton(self, text=match_button_name, compound="left", image=self.match_button_img,  font=customtkinter.CTkFont(size=11), command=self.highlight, width=20)
+        self.match_entry_button = customtkinter.CTkButton(self, text=match_button_name, 
+                                                          compound="left", 
+                                                          image=self.match_button_img,  
+                                                          command=self.highlight, 
+                                                          width=20,
+                                                          font=small_font)
         self.match_entry_button.grid(row=0, column=14, padx=(5,5), pady=(5,5), sticky="we")
 
         ### MIDDLE FRAME - ENTRY FRAME 
@@ -252,20 +413,31 @@ class Groppy(customtkinter.CTk):
         self.entry_frame_middle.grid_columnconfigure((0,1), weight=1)
 
         ### ENTRY FRAME - EXPORT BUTTON
-        self.export_entry_button = customtkinter.CTkButton(self.entry_frame_middle, text=add_pattern_button_name, compound="left", image=self.add_button_img, font=customtkinter.CTkFont(size=11, weight="bold"), command=self.add_pattern_to_table)
+        self.export_entry_button = customtkinter.CTkButton(self.entry_frame_middle, 
+                                                           text=add_pattern_button_name, 
+                                                           compound="left", 
+                                                           image=self.add_button_img, 
+                                                           command=self.add_pattern_to_table,
+                                                           font=small_font)
         self.export_entry_button.grid(row=0, rowspan=2, column=1, padx=(5,5), pady=(5,5), sticky="we")
 
         ### ENTRY FRAME - REGEX SWITCH
-        self.switch_regexp_match = customtkinter.CTkSwitch(self.entry_frame_middle, command=self.toggle_auto_match, font=customtkinter.CTkFont(size=11),text=automatch_label)
+        self.switch_regexp_match = customtkinter.CTkSwitch(self.entry_frame_middle, 
+                                                           command=self.toggle_auto_match, 
+                                                           font=small_font,
+                                                           text=automatch_label)
         self.switch_regexp_match.grid(row=0, column=0, padx=(10,10),sticky="we")
         self.switch_regexp_match.select()
 
         ### ENTRY FRAME - HIGHLIGHT SWITCH
-        self.switch_bg_highlight = customtkinter.CTkSwitch(self.entry_frame_middle, command=self.toggle_bg_highlight, font=customtkinter.CTkFont(size=11),text=bg_highlight_label)
+        self.switch_bg_highlight = customtkinter.CTkSwitch(self.entry_frame_middle, 
+                                                           command=self.toggle_bg_highlight, 
+                                                           font=small_font,
+                                                           text=bg_highlight_label)
         self.switch_bg_highlight.grid(row=1, column=0, padx=(10,10),sticky="we")
 
         ### MIDDLE FRAME - TABVIEW
-        self.tabview = customtkinter.CTkTabview(self)
+        self.tabview = CustomTabView(self)
         self.tabview.grid(row=2, column=1, columnspan=15, rowspan=2, padx=(20, 20), pady=(20, 20), sticky="nsew")
         self.tabview.add("Stats")
         self.tabview.add("Results")
@@ -312,7 +484,9 @@ class Groppy(customtkinter.CTk):
         self.sidebar_frame_right.grid_rowconfigure((0,1,2,4,5,6), weight=1)
 
         ### RIGHT FRAME - PATTERNS LABEL
-        self.patterns_label = customtkinter.CTkLabel(self.sidebar_frame_right, text=lfi_pattern_button_name, font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.patterns_label = customtkinter.CTkLabel(self.sidebar_frame_right, 
+                                                     text=lfi_pattern_button_name, 
+                                                     font=large_font)
         self.patterns_label.grid(row=0, column=0, padx=40, pady=(0, 10), sticky="s")
         
         ### RIGHT FRAME - PATTERNS TABLE
@@ -331,17 +505,29 @@ class Groppy(customtkinter.CTk):
         self.table_list.add(self.patterns_sheet)
 
         ### RIGHT FRAME - PATTERNS TABLE FUNCTIONS
-        self.patterns_sheet.enable_filter_in_menue("Include",lambda: self.pattern_filter(self.patterns_sheet, self.include, "include"))
-        self.patterns_sheet.enable_filter_in_menue("Exclude",lambda: self.pattern_filter(self.patterns_sheet, self.exclude, "exclude"))
-        self.patterns_sheet.popup_menu_add_command("Delete", lambda: self.delete_pattern_from_table(self.patterns_sheet), index_menu = False, header_menu = False)
+        self.patterns_sheet.enable_filter_in_menue("Include",
+                                                   lambda: self.pattern_filter(self.patterns_sheet, self.include, "include"))
+        self.patterns_sheet.enable_filter_in_menue("Exclude",
+                                                   lambda: self.pattern_filter(self.patterns_sheet, self.exclude, "exclude"))
+        self.patterns_sheet.popup_menu_add_command("Delete", 
+                                                   lambda: self.delete_pattern_from_table(self.patterns_sheet), 
+                                                   index_menu = False, 
+                                                   header_menu = False)
         self.patterns_sheet.disable_bindings("double_click_column_resize")    
 
         ### RIGHT FRAME - EXPORT PATTERNS BUTTON
-        self.sidebar_button_export_patterns = customtkinter.CTkButton(self.sidebar_frame_right, text="", compound="left", image=self.save_button_img, command=self.export_patterns, width=10)
+        self.sidebar_button_export_patterns = customtkinter.CTkButton(self.sidebar_frame_right, text="", 
+                                                                      compound="left", 
+                                                                      image=self.save_button_img, 
+                                                                      command=self.export_patterns, 
+                                                                      width=10,
+                                                                      font=small_font)
         self.sidebar_button_export_patterns.grid(row=3, column=0, padx=20, pady=(10,0), sticky="n")
 
         ### RIGHT FRAME - FILTER LABEL
-        self.filter_label = customtkinter.CTkLabel(self.sidebar_frame_right, text=filter_label, font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.filter_label = customtkinter.CTkLabel(self.sidebar_frame_right, 
+                                                   text=filter_label, 
+                                                   font=large_font)
         self.filter_label.grid(row=4, column=0, padx=40, pady=(0, 10), sticky="s")
         
         ### RIGHT FRAME - FILTER BOX
@@ -350,11 +536,22 @@ class Groppy(customtkinter.CTk):
         self.filter_box.configure(state="disabled")       
 
         ### RIGHT FRAME - CLEAR FILTER BUTTON
-        self.filter_button = customtkinter.CTkButton(self.sidebar_frame_right, text="", command=self.clear_filters, compound="left", image=self.clear_button_img, width=10) 
+        self.filter_button = customtkinter.CTkButton(self.sidebar_frame_right, text="", 
+                                                     command=self.clear_filters, 
+                                                     compound="left", 
+                                                     image=self.clear_button_img, 
+                                                     width=10,
+                                                     font=small_font) 
         self.filter_button.grid(row=7, column=0, padx=50, pady=10, sticky="n")
 
         ### RIGHT FRAME - TEST PATTERNS BUTTON
-        self.sidebar_button_get_matches = customtkinter.CTkButton(self.sidebar_frame_right, height=20, text=getmatches_button_name, compound="left", image=self.getmatches_button_img, command=lambda: self.compute(self.get_pattern_matches), font=customtkinter.CTkFont(size=20, weight="bold"))
+        self.sidebar_button_get_matches = customtkinter.CTkButton(self.sidebar_frame_right, 
+                                                                  height=20, 
+                                                                  text=getmatches_button_name, 
+                                                                  compound="left", 
+                                                                  image=self.getmatches_button_img, 
+                                                                  command=lambda: self.compute(self.get_pattern_matches), 
+                                                                  font=large_font)
         self.sidebar_button_get_matches.grid(row=8, rowspan=2,column=0, padx=20, pady=20, sticky="nsew")
 
     def declare_default_states(self):
@@ -364,6 +561,7 @@ class Groppy(customtkinter.CTk):
         self.showing_es_api = False
         self.showing_es_cert = False
         self.get_unique_es_results = True
+        self.get_unique_jsonfile_results = True
         self.get_unique_logfile_lines = True
 
         self.es_username_label.grid_forget()
@@ -392,13 +590,20 @@ class Groppy(customtkinter.CTk):
             self.es_unique_data_switch.select()
         self.get_unique_es_results = not self.get_unique_es_results
 
+    def toggle_get_unique_jsonfile_results(self):
+        if self.get_unique_jsonfile_results:
+            self.unique_jsonfile_lines_switch.deselect()
+        else:
+            self.unique_jsonfile_lines_switch.select()
+        self.get_unique_jsonfile_results = not self.get_unique_jsonfile_results
+
     def toggle_es_cert(self):
         if self.showing_es_cert:
             self.es_cert_label.grid_forget()
             self.es_cert_entry.grid_forget()
         else:
-            self.es_cert_label.grid(row=9, column=0, padx=(5,0), sticky="w")
-            self.es_cert_entry.grid(row=9, column=1,columnspan=2, padx=(5,0), sticky="w")
+            self.es_cert_label.grid(row=8, column=0, padx=(5,0), sticky="w")
+            self.es_cert_entry.grid(row=8, column=1,columnspan=2, padx=(5,0), sticky="w")
         self.showing_es_cert = not self.showing_es_cert
 
     def toggle_es_api(self):
@@ -406,8 +611,8 @@ class Groppy(customtkinter.CTk):
             self.api_key_label.grid_forget()
             self.api_key_entry.grid_forget()
         else:
-            self.api_key_entry.grid(row=7, column=1,columnspan=2, padx=(5,0), sticky="w")
-            self.api_key_label.grid(row=7, column=0, padx=(5,0), sticky="w")
+            self.api_key_entry.grid(row=6, column=1,columnspan=2, padx=(5,0), sticky="w")
+            self.api_key_label.grid(row=6, column=0, padx=(5,0), sticky="w")
         self.showing_es_api = not self.showing_es_api
 
     def toggle_es_auth(self):
@@ -417,10 +622,10 @@ class Groppy(customtkinter.CTk):
             self.es_password_label.grid_forget()
             self.es_password_entry.grid_forget()
         else:
-            self.es_password_entry.grid(row=5, column=1,columnspan=2, padx=(5,0), sticky="w")
-            self.es_password_label.grid(row=5, column=0, padx=(5,0), sticky="w")
-            self.es_username_entry.grid(row=4, column=1,columnspan=2, padx=(5,0), sticky="w")
-            self.es_username_label.grid(row=4, column=0, padx=(5,0), sticky="w")
+            self.es_password_entry.grid(row=4, column=1,columnspan=2, padx=(5,0), sticky="w")
+            self.es_password_label.grid(row=4, column=0, padx=(5,0), sticky="w")
+            self.es_username_entry.grid(row=3, column=1,columnspan=2, padx=(5,0), sticky="w")
+            self.es_username_label.grid(row=3, column=0, padx=(5,0), sticky="w")
         self.showing_es_auth = not self.showing_es_auth
 
     def toggle_patterns_frame(self):
@@ -470,6 +675,21 @@ class Groppy(customtkinter.CTk):
             function(*args)
         return wrapper
 
+    def get_json_field_data(self):
+    
+        try:
+            self.json_field = self.json_field_combobox.get().strip()
+
+            json_data = other_funcs.extract_jsonfile_field_data(self.json_data, self.json_field, unique=self.get_unique_jsonfile_results)
+            print("JSON_DATA", json_data)
+            if json_data:
+                self.update_textbox(self.textbox_log, "\n".join(json_data), editable=True)
+        except Exception as error_msg:
+            CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES['unsuccessful_retrieval_of_jsonfile_data'], text=str(error_msg), geometry=self.messagebox_geometry)
+        finally:
+            self.hide_loading()
+
+
     def compute(self, func: callable):
         self.show_loading()
         self.loading_thread = Thread(target=func)
@@ -479,6 +699,7 @@ class Groppy(customtkinter.CTk):
         self.sidebar_button_es_fields.configure(state="disabled")
         self.sidebar_button_es_conn.configure(state="disabled")
         self.sidebar_button_get_matches.configure(state="disabled")
+        self.sidebar_button_json_fields.configure(state="disabled")
 
         self.textbox_log.grid_forget()
         self.loading_frame.grid(row=1, column=1, columnspan=15, pady=(10,20), padx=20, sticky="nsew")
@@ -489,12 +710,13 @@ class Groppy(customtkinter.CTk):
         self.sidebar_button_es_fields.configure(state="normal")
         self.sidebar_button_es_conn.configure(state="normal")
         self.sidebar_button_get_matches.configure(state="normal")
+        self.sidebar_button_json_fields.configure(state="normal")
 
     def create_loading_frame(self):
         self.loading_frame = customtkinter.CTkFrame(self, corner_radius=5)
         self.loading_frame.grid_columnconfigure((0,1,2), weight=1)
         self.loading_frame.grid_rowconfigure((2,3), weight=2)
-        loading_label = customtkinter.CTkLabel(self.loading_frame, text=loading_label_text, font=customtkinter.CTkFont(size=loading_label_size))
+        loading_label = customtkinter.CTkLabel(self.loading_frame, text=loading_label_text, font=extra_large_font)
         loading_label.grid(row=2, column=0, columnspan=3, padx=10, pady=(0,15), sticky="ews")
         
         progressbar = customtkinter.CTkProgressBar(self.loading_frame, height=30,corner_radius=40,border_width=2)
@@ -529,10 +751,10 @@ class Groppy(customtkinter.CTk):
                                                     request_body=request_body,
                                                     cert=self.es_cert, 
                                                     api_key=self.es_api_key).json()
-            es_data = es_funcs.retrieve_requested_field(response, self.es_field,unique=self.get_unique_es_results)
+            es_data = es_funcs.extract_es_field_data(response, self.es_field,unique=self.get_unique_es_results)
             self.update_textbox(self.textbox_log, "\n".join(es_data), editable=True)
         except Exception as error_msg:
-            CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES['unsuccessful_retrieval_of_data'], text=str(error_msg), geometry=self.messagebox_geometry)
+            CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES['unsuccessful_retrieval_of_es_data'], text=str(error_msg), geometry=self.messagebox_geometry)
         finally:
             self.hide_loading()
 
@@ -540,12 +762,12 @@ class Groppy(customtkinter.CTk):
             self.refresh_index_and_fields()
         except:
             pass
-
+    
     def refresh_index_and_fields(self):
         self.get_indicies()
         self.get_fields()
         self.index_autocomplete_callback()
-        self.field_autocomplete_callback()
+        self.es_field_autocomplete_callback()
 
     def get_indicies(self):
         response = es_funcs.get_request_elastic(url='http://{}:{}/_cat/indices?format=json&pretty=true'.format(self.es_hostname,self.es_port), 
@@ -647,15 +869,23 @@ class Groppy(customtkinter.CTk):
             if(re.match(search_str,index,re.IGNORECASE)):
                 matching_index.append(index)
                 
-        self.es_index_combobox.configure(values=matching_index[:14])
+        self.es_index_combobox.configure(values=matching_index[:maximum_matched_fields])
     
-    def field_autocomplete_callback(self, *_args: any):
+    def es_field_autocomplete_callback(self, *_args: any):
         search_str=self.es_field_combobox.get() 
         matching_fields=[]
         for field in self.es_fields:
             if(re.match(search_str,field,re.IGNORECASE)):
                 matching_fields.append(field)
-        self.es_field_combobox.configure(values=matching_fields[:14])
+        self.es_field_combobox.configure(values=matching_fields[:maximum_matched_fields])
+
+    def json_field_autocomplete_callback(self, *_args: any):
+        search_str=self.json_field_combobox.get() 
+        matching_fields=[]
+        for field in self.json_fields:
+            if(re.match(search_str,field,re.IGNORECASE)):
+                matching_fields.append(field)
+        self.json_field_combobox.configure(values=matching_fields[:maximum_matched_fields])
 
     def highlight(self):
         self.textbox_log.highlight_pattern(pattern=self.regexp_entry.get())
@@ -695,13 +925,45 @@ class Groppy(customtkinter.CTk):
         if patternsfile:                           
             try:                                
                 self.pattern_file_raw = self.read_textfile(patternsfile)
-                self.extracted_patterns = regex_funcs.extract_patterns(self.pattern_file_raw)
+                self.extracted_patterns = other_funcs.extract_patterns(self.pattern_file_raw)
             except Exception as error_msg:
                 CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES["unsuccessful_grok_file_load"], text=str(error_msg), geometry=self.messagebox_geometry)
-            table_format_patterns = regex_funcs.get_pattern_table_format(self.extracted_patterns) 
+            table_format_patterns = other_funcs.get_pattern_table_format(self.extracted_patterns) 
             self.patterns_sheet.set_sheet_data(data=table_format_patterns)
             if not self.showing_patterns_frame:
                 self.toggle_patterns_frame()
+
+    def read_json(self):
+        jsonfile = customtkinter.filedialog.askopenfilename(title="Please select a json file") 
+        if jsonfile:                           
+            try:                                
+                self.json_data = self.read_jsonfile(jsonfile)
+                self.populate_json_keyfield_list(self.json_data)
+                if self.json_fields:
+                    self.json_field_autocomplete_callback()
+                else:
+                    raise ValueError
+
+            except Exception as error_msg:
+                CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES["unsuccessful_json_file_load"], text=str(error_msg), geometry=self.messagebox_geometry)
+
+    def populate_json_keyfield_list(self, json_data: dict):
+        self.json_fields = []
+                
+        if isinstance(json_data, dict):
+            key_list = other_funcs.get_jsonfile_key_names(json_data)
+            if key_list:
+                for key in key_list:
+                    if key not in self.json_fields:
+                        self.json_fields.append(key)
+        else:
+            for json_object in json_data:
+                key_list = other_funcs.get_jsonfile_key_names(json_object)
+
+                if key_list:
+                    for key in key_list:
+                        if key not in self.json_fields:
+                            self.json_fields.append(key)
 
     def read_log(self):
         logfile = customtkinter.filedialog.askopenfilename(title="Please select a log file")
@@ -758,22 +1020,22 @@ class Groppy(customtkinter.CTk):
                 if self.logtextbox_is_populated():
                     log = self.get_textbox_log()
 
-                    self.converted_patterns = regex_funcs.convert_patterns(patterns)
+                    self.converted_patterns = other_funcs.convert_patterns(patterns)
                     filter_list = self.get_filtered_patterns(self.converted_patterns)
-                    self.matches, self.metadata = regex_funcs.get_matches(log, self.converted_patterns, pattern_filter=filter_list)
+                    self.matches, self.metadata = other_funcs.get_matches(log, self.converted_patterns, pattern_filter=filter_list)
 
                     if not self.showing_patterns_stats_frame:
                         self.toggle_stats_frame()
 
                     #Stats table
-                    self.stats_table_format, stats_column_headers =regex_funcs.get_stats_table_format(self.metadata)
+                    self.stats_table_format, stats_column_headers =other_funcs.get_stats_table_format(self.metadata)
                     self.stats_sheet.headers(stats_column_headers)
                     
                     self.stats_sheet.set_sheet_data(data=self.stats_table_format)
                     self.stats_sheet.set_all_cell_sizes_to_text(redraw = True)
                     
                     #Results table
-                    self.results_table_format, res_column_headers = regex_funcs.get_res_table_format(self.matches)
+                    self.results_table_format, res_column_headers = other_funcs.get_res_table_format(self.matches)
                     self.results_sheet.headers(res_column_headers)
                     self.results_sheet.set_sheet_data(data=self.results_table_format)
                 else:
@@ -784,6 +1046,30 @@ class Groppy(customtkinter.CTk):
             CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES['unsuccessful_pattern_matches'], text=str(error_msg), geometry=self.messagebox_geometry)
         finally:
             self.hide_loading()
+
+    def read_jsonfile(self, jsonfile: str) -> Union[dict, list[dict]]:
+        """
+        Reads the provided json file and first tries to load it as a single json object. 
+        On failure, tries to load it with each line separated as a ndjson file. 
+        If that fails, returns an error.
+        If successful load, but contains no results. Returns an error.
+        Initiates the variable 'jd' as dict or list in the start to enable a check if it's empty in the finally block. 
+        """
+        try:
+            with open(jsonfile, "rt") as jf:
+                jd = {}
+                jd = json.loads(jf.read())
+        except:
+            try:
+                jd = []
+                with open(jsonfile, "rt") as jf:
+                    jd = [json.loads(line.strip()) for line in jf.readlines()]
+            except:
+                raise ValueError
+        finally:
+            if not jd:
+                raise ValueError
+            return jd
 
     def read_textfile(self, textfile: str, unique: bool = False) -> list:
         textfile_lines = []
