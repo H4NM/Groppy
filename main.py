@@ -115,7 +115,8 @@ class Groppy(customtkinter.CTk):
                                                                command=self.toggle_patterns_frame, 
                                                                text=patterns_appear_switch_label,
                                                                checkbox_width=checkbox_size,
-                                                               checkbox_height=checkbox_size)
+                                                               checkbox_height=checkbox_size,
+                                                               font=small_font)
         self.patterns_frame_switch.grid(row=1, column=0,columnspan=2,padx=20, pady=(5, 0), sticky="w")
         
         ### STATS SWITCH
@@ -123,7 +124,8 @@ class Groppy(customtkinter.CTk):
                                                                      command=self.toggle_stats_frame, 
                                                                      text=stats_appear_switch_label,
                                                                      checkbox_width=checkbox_size,
-                                                                     checkbox_height=checkbox_size)
+                                                                     checkbox_height=checkbox_size,
+                                                                     font=small_font)
         self.patterns_stats_frame_switch.grid(row=2, column=0,columnspan=2,padx=20, pady=(5, 5), sticky="w")
 
         ### APPEARANCE SWITCH
@@ -148,7 +150,8 @@ class Groppy(customtkinter.CTk):
                                                                      command=self.toggle_get_unique_logfile_lines, 
                                                                      text=lfi_unique_fields_label,
                                                                      checkbox_width=checkbox_size,
-                                                                     checkbox_height=checkbox_size)
+                                                                     checkbox_height=checkbox_size,
+                                                                     font=small_font)
         self.unique_logfile_lines_switch.grid(row=0, column=5, padx=(5,10), pady=(5, 0))
         self.unique_logfile_lines_switch.select()
         
@@ -174,7 +177,8 @@ class Groppy(customtkinter.CTk):
                                                                       command=self.toggle_get_unique_jsonfile_results, 
                                                                       text=lfi_unique_fields_label,
                                                                       checkbox_width=checkbox_size,
-                                                                      checkbox_height=checkbox_size)
+                                                                      checkbox_height=checkbox_size,
+                                                                      font=small_font)
         self.unique_jsonfile_lines_switch.grid(row=2, column=5, padx=(5,10), pady=(5, 0))
         self.unique_jsonfile_lines_switch.select()
 
@@ -238,7 +242,8 @@ class Groppy(customtkinter.CTk):
                                                      command=self.toggle_es_auth, 
                                                      text=es_basic_auth_label,
                                                      checkbox_width=checkbox_size,
-                                                     checkbox_height=checkbox_size)
+                                                     checkbox_height=checkbox_size,
+                                                     font=small_font)
         
         self.auth_switch.grid(row=2, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
         
@@ -273,7 +278,8 @@ class Groppy(customtkinter.CTk):
                                                         command=self.toggle_es_api, 
                                                         text=es_api_key_label,
                                                         checkbox_width=checkbox_size,
-                                                        checkbox_height=checkbox_size)
+                                                        checkbox_height=checkbox_size,
+                                                        font=small_font)
         self.api_key_switch.grid(row=5, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
 
         ### API KEY LABEL
@@ -293,7 +299,8 @@ class Groppy(customtkinter.CTk):
                                                         command=self.toggle_es_cert, 
                                                         text=es_cert_label,
                                                         checkbox_width=checkbox_size,
-                                                        checkbox_height=checkbox_size)
+                                                        checkbox_height=checkbox_size,
+                                                        font=small_font)
         
         self.es_cert_switch.grid(row=7, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
 
@@ -367,7 +374,8 @@ class Groppy(customtkinter.CTk):
                                                                command=self.toggle_get_unique_es_results, 
                                                                text=es_unique_lines_label,
                                                                checkbox_width=checkbox_size,
-                                                               checkbox_height=checkbox_size)
+                                                               checkbox_height=checkbox_size,
+                                                               font=small_font)
         self.es_unique_data_switch.grid(row=13, column=0, columnspan=3, padx=20, pady=(5, 0), sticky="w")
         self.es_unique_data_switch.select()
 
@@ -679,9 +687,7 @@ class Groppy(customtkinter.CTk):
     
         try:
             self.json_field = self.json_field_combobox.get().strip()
-
             json_data = other_funcs.extract_jsonfile_field_data(self.json_data, self.json_field, unique=self.get_unique_jsonfile_results)
-            print("JSON_DATA", json_data)
             if json_data:
                 self.update_textbox(self.textbox_log, "\n".join(json_data), editable=True)
         except Exception as error_msg:

@@ -9,7 +9,6 @@ class CustomTabView(customtkinter.CTkTabview):
         super().__init__(*args, **kwargs)
         # Will add font support when tkinter supports it
 
-
 class CustomSheet(Sheet):
     def __init__(self, *args: any, **kwargs: any):
         super().__init__(*args, 
