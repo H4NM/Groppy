@@ -2,6 +2,7 @@
 # Groppy 
 
 [![Python Versions](https://github.com/H4NM/Groppy/blob/main/img/pyversion.svg)](https://docs.python.org/3/howto/regex.html)
+![Groppy version](https://github.com/H4NM/Groppy/blob/main/img/groppyversion.svg)
 [![Packages](https://github.com/H4NM/Groppy/blob/main/img/packages.svg)](https://pypi.org/)
 ![License](https://github.com/H4NM/Groppy/blob/main/img/license.svg)
 

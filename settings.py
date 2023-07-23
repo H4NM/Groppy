@@ -6,8 +6,8 @@ app_title: str='Groppy'
 app_version: str='1.1.0'
 
 default_main_color: str = 'dark'
-#default_sub_color: str = 'green'
-default_sub_color: str = './themes/default.json'
+default_sub_color: str = 'green'
+#default_sub_color: str = './themes/blue.json'
 
 window_width: int=1500
 window_height: int=880
