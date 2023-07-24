@@ -21,7 +21,6 @@ class Groppy(customtkinter.CTk):
         self.declare_default_states()
         self.light_text_color, self.dark_text_color = self.patterns_label.cget("text_color")
         self.unique_light_color, self.unique_dark_color = self.sidebar_button_logfile.cget("fg_color")
-        print(self.unique_light_color, self.unique_dark_color)
         self.update_color_scheme()
 
     def initialize_main_window(self):
@@ -31,6 +30,7 @@ class Groppy(customtkinter.CTk):
         self.wm_iconbitmap(app_icon)
         self.title(app_title+"/"+app_version)
         self.geometry("%dx%d" % (window_width, window_height))
+        self.regex_help_messagebox_geometry="%dx%d" % (window_width/2, window_height/2)
         self.messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/4, self.winfo_y() + window_height/4)
         self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10,11,12,13,14), weight=1)
         self.grid_columnconfigure((0,15,16), weight=0)
@@ -401,13 +401,6 @@ class Groppy(customtkinter.CTk):
         self.entry_frame_middle.grid_rowconfigure((0,1), weight=1)
         self.entry_frame_middle.grid_columnconfigure((0,1), weight=1)
 
-        ### ENTRY FRAME - EXPORT BUTTON
-        self.export_entry_button = customtkinter.CTkButton(self.entry_frame_middle, 
-                                                           text=add_pattern_button_name,
-                                                           command=self.add_pattern_to_table,
-                                                           font=small_font)
-        self.export_entry_button.grid(row=0, rowspan=2, column=1, padx=(5,5), pady=(5,5), sticky="we")
-
         ### ENTRY FRAME - REGEX SWITCH
         self.switch_regexp_match = customtkinter.CTkSwitch(self.entry_frame_middle, 
                                                            command=self.toggle_auto_match, 
@@ -422,6 +415,25 @@ class Groppy(customtkinter.CTk):
                                                            font=small_font,
                                                            text=bg_highlight_label)
         self.switch_bg_highlight.grid(row=1, column=0, padx=(10,10),sticky="we")
+
+        ### ENTRY FRAME - EXPORT BUTTON
+        self.save_entry_button = customtkinter.CTkButton(self.entry_frame_middle, 
+                                                           text=add_pattern_button_name,
+                                                           command=self.add_pattern_to_table,
+                                                           font=small_font)
+        self.save_entry_button.grid(row=0, rowspan=2, column=1, padx=(5,5), pady=(5,5), sticky="we")
+
+        ### ENTRY FRAME - REGEX HELP BUTTON
+        self.re_help_button = customtkinter.CTkButton(self.entry_frame_middle, 
+                                                      width=20,
+                                                      text=regex_help_button_name,
+                                                      command=lambda:   CustomMessagebox(title=regex_help_window_title, 
+                                                                        text=regex_help_text, 
+                                                                        geometry=self.regex_help_messagebox_geometry),
+                                                      font=small_font)
+        
+
+        self.re_help_button.grid(row=0, rowspan=2, column=2, padx=(5,5), pady=(5,5), sticky="we")
 
         ### MIDDLE FRAME - TABVIEW
         self.tabview = CustomTabView(self)

@@ -25,73 +25,7 @@ class CustomSheet(Sheet):
                                 "copy"
         )
 
-    def adapt_theme(self, mode):
-        if mode == "dark":
-            table_bg="#3D3D3D" 
-            top_left_bg="#3D3D3D"
-            popup_menu_bg="#3D3D3D" 
-            header_bg="#4E4E4E" 
-            index_bg="#4E4E4E"
-        else:
-            table_bg="#3D3D3D" 
-            top_left_bg="#3D3D3D"
-            popup_menu_bg="#3D3D3D" 
-            header_bg="#4E4E4E" 
-            index_bg="#4E4E4E"
-
-        theme = {
-            "popup_menu_fg": "#000000",
-            "popup_menu_bg": popup_menu_bg,
-            "popup_menu_highlight_bg": "#DCDEE0",
-            "popup_menu_highlight_fg": "#000000",
-            "index_hidden_rows_expander_bg": "gray30",
-            "header_hidden_columns_expander_bg": "gray30",
-            "header_bg": header_bg,
-            "header_border_fg": "#ababab",
-            "header_grid_fg": "#ababab",
-            "header_fg": "black",
-            "header_selected_cells_bg": "#d6d4d2",
-            "header_selected_cells_fg": "#217346",
-            "index_bg": index_bg,
-            "index_border_fg": "#ababab",
-            "index_grid_fg": "#ababab",
-            "index_fg": "black",
-            "index_selected_cells_bg": "#d6d4d2",
-            "index_selected_cells_fg": "#217346",
-            "top_left_bg": top_left_bg,
-            "top_left_fg": "#b7b7b7",
-            "top_left_fg_highlight": "#5f6368",
-            "table_bg": table_bg,
-            "table_grid_fg": "#bfbfbf",
-            "table_fg": "black",
-            "table_selected_cells_border_fg": "#217346",
-            "table_selected_cells_bg": "#E3E3E3",
-            "table_selected_cells_fg": "black",
-            "resizing_line_fg": "black",
-            "drag_and_drop_bg": "black",
-            "outline_color": "gray2",
-            "header_selected_columns_bg": "#d3f0e0",
-            "header_selected_columns_fg": "#217346",
-            "index_selected_rows_bg": "#d3f0e0",
-            "index_selected_rows_fg": "#217346",
-            "table_selected_rows_border_fg": "#217346",
-            "table_selected_rows_bg": "#E3E3E3",
-            "table_selected_rows_fg": "black",
-            "table_selected_columns_border_fg": "#217346",
-            "table_selected_columns_bg": "#E3E3E3",
-            "table_selected_columns_fg": "black",
-        }
-        return theme
-    
-    def update_color_scheme(self, mode=default_main_color, **kwargs):
-        #£ Add color update based on the imported theme
-        #£ C:\Users\Asus\Desktop\Programmering\git\Groppy\Lib\site-packages\tksheet\_tksheet_vars
-        #Pseudo: After theme is imported, retrieve defined colors to update sheet with
-        # Check appearance switch function for white dark mode
-        # continue here theme = self.adapt_theme(mode, )
-        self.set_options(**theme, redraw=False)
-        self.config(bg=theme["table_bg"])
-
+     
     def get_patterns(self, pattern_filter_list: list) -> list:
         selected_rows = self.get_selected_rows(get_cells=False, get_cells_as_rows=True)
         for row in selected_rows:
@@ -112,7 +46,6 @@ class CustomSheet(Sheet):
             for row in range(0,table_total_rows):
                 if row_with_data == self.get_row_data(row, return_copy=True):
                     self.delete_row(row, deselect_all = True)
-                   
                     break
             
             for list in filter_list:
@@ -158,17 +91,19 @@ class CustomMessagebox(customtkinter.CTkToplevel):
         self.title(title)
         self.geometry(geometry)
         self.grid_columnconfigure((0), weight=1)
-        self.grid_rowconfigure((0,1,2), weight=1)
+        self.grid_rowconfigure((0,1), weight=2)
         self.resizable(False,False)
-        message_label = customtkinter.CTkLabel(self, 
-                                               text=label, 
-                                               font=small_font)
-        message_label.grid(row=0, column=0, padx=50, pady=(20,10),sticky="nsew")
+        message_text_row=0
+        if len(label) > 0:
+            message_label = customtkinter.CTkLabel(self, 
+                                                text=label, 
+                                                font=small_font)
+            message_label.grid(row=0, column=0, padx=50, pady=(20,10),sticky="nsew")
+            message_text_row=1
         if text:
             message_text = customtkinter.CTkTextbox(self,
-                                                    height=70,
                                                     font=small_font)
-            message_text.grid(row=1, column=0, padx=10, pady=(0,10), sticky="nsew")
+            message_text.grid(row=message_text_row, column=0, padx=10, pady=(0,10), sticky="nsew")
             message_text.insert("0.0", text)
             message_text.configure(state="disabled")
         ok_button = customtkinter.CTkButton(self, 
@@ -176,9 +111,10 @@ class CustomMessagebox(customtkinter.CTkToplevel):
                                             command=self.destroy, 
                                             width=40, 
                                             font=medium_font)
-        ok_button.grid(row=2, column=0, padx=10, pady=(0,10), sticky="ns")
+        ok_button.grid(row=message_text_row+1, column=0, padx=10, pady=(0,10), sticky="s")
             
         self.attributes("-topmost", True)
+
 
 class CustomTextBox(customtkinter.CTkTextbox):
     def __init__(self, *args: any, **kwargs: any):

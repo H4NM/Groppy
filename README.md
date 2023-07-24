@@ -6,7 +6,7 @@
 [![Packages](https://github.com/H4NM/Groppy/blob/dev/badges/packages.svg)](https://pypi.org/)
 ![License](https://github.com/H4NM/Groppy/blob/dev/badges/license.svg)
 
-A desktop application written purely in python using [customtkinter](https://customtkinter.tomschimansky.com/) and [tksheet](https://github.com/ragardner/tksheet) (+ [pillow](https://pypi.org/project/Pillow/) and [requests](https://pypi.org/project/requests/)). Requires python 3.11 to be able to perform ![atomic grouping and possessive quantifiers](https://learnbyexample.github.io/python-regex-possessive-quantifier/). This application is meant to address the challenges of creating regex patterns and utilizing them efficiently with grok patterns. From my personal experience, creating the grok patterns is one thing, but realizing the already existing patterns is overlooked, whereas you may find an person creating the same regex pattern for a signature that may already be applicable. 
+A desktop application written purely in python using [customtkinter](https://customtkinter.tomschimansky.com/) and [tksheet](https://github.com/ragardner/tksheet) (and [requests](https://pypi.org/project/requests/)). Requires python 3.11 to be able to perform ![atomic grouping and possessive quantifiers](https://learnbyexample.github.io/python-regex-possessive-quantifier/). This application is meant to address the challenges of creating regex patterns and utilizing them efficiently with grok patterns. From my personal experience, creating the grok patterns is one thing, but realizing the already existing patterns is overlooked, whereas you may find an person creating the same regex pattern for a signature that may already be applicable. 
 
 ## Features
 
