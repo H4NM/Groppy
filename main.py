@@ -397,7 +397,7 @@ class Groppy(customtkinter.CTk):
 
         ### MIDDLE FRAME - ENTRY FRAME 
         self.entry_frame_middle = customtkinter.CTkFrame(self, corner_radius=5, height=20, width=20)
-        self.entry_frame_middle.grid(row=0, column=15, padx=(0,20), pady=(20, 10), sticky="we")
+        self.entry_frame_middle.grid(row=0, column=15, padx=(0,20), pady=(10, 5), sticky="we")
         self.entry_frame_middle.grid_rowconfigure((0,1), weight=1)
         self.entry_frame_middle.grid_columnconfigure((0,1), weight=1)
 
@@ -406,7 +406,7 @@ class Groppy(customtkinter.CTk):
                                                            command=self.toggle_auto_match, 
                                                            font=small_font,
                                                            text=automatch_label)
-        self.switch_regexp_match.grid(row=0, column=0, padx=(10,10),sticky="we")
+        self.switch_regexp_match.grid(row=0, column=0, pady=(5,0),padx=(10,10),sticky="we")
         self.switch_regexp_match.select()
 
         ### ENTRY FRAME - HIGHLIGHT SWITCH
@@ -414,7 +414,7 @@ class Groppy(customtkinter.CTk):
                                                            command=self.toggle_bg_highlight, 
                                                            font=small_font,
                                                            text=bg_highlight_label)
-        self.switch_bg_highlight.grid(row=1, column=0, padx=(10,10),sticky="we")
+        self.switch_bg_highlight.grid(row=1, column=0, pady=(0,5), padx=(10,10),sticky="we")
 
         ### ENTRY FRAME - EXPORT BUTTON
         self.save_entry_button = customtkinter.CTkButton(self.entry_frame_middle, 
@@ -479,7 +479,7 @@ class Groppy(customtkinter.CTk):
         """
         ### RIGHT FRAME
         self.sidebar_frame_right = customtkinter.CTkFrame(self, corner_radius=5, width=100)
-        self.sidebar_frame_right.grid(row=0, column=16, rowspan=4, padx=(0,20), pady=(20, 20), sticky="nsew")
+        self.sidebar_frame_right.grid(row=0, column=16, rowspan=4, padx=(0,20), pady=(10, 20), sticky="nsew")
         self.sidebar_frame_right.grid_rowconfigure((0,1,2,4,5,6), weight=1)
 
         ### RIGHT FRAME - PATTERNS LABEL
@@ -626,7 +626,7 @@ class Groppy(customtkinter.CTk):
     def toggle_patterns_frame(self):
         self.showing_patterns_frame = not self.showing_patterns_frame 
         if self.showing_patterns_frame:
-            self.sidebar_frame_right.grid(row=0, column=16, rowspan=4, padx=(0,20), pady=(20, 20), sticky="nsew")
+            self.sidebar_frame_right.grid(row=0, column=16, rowspan=4, padx=(0,20), pady=(10, 20), sticky="nsew")
             self.patterns_frame_switch.select()
         else:
             self.sidebar_frame_right.grid_forget()

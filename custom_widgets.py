@@ -115,6 +115,16 @@ class CustomMessagebox(customtkinter.CTkToplevel):
             
         self.attributes("-topmost", True)
 
+class RegexHelpMessagebox(customtkinter.CTkToplevel):
+     def __init__(self, geometry: str="", *args: any, **kwargs: any):
+        super().__init__(*args, **kwargs)
+        self.wm_iconbitmap(app_icon)
+
+        self.title(regex_help_window_title)
+        self.geometry(geometry)
+        self.grid_columnconfigure((0), weight=1)
+        self.grid_rowconfigure((0,1), weight=2)
+        self.resizable(False,False)
 
 class CustomTextBox(customtkinter.CTkTextbox):
     def __init__(self, *args: any, **kwargs: any):

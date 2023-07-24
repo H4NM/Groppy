@@ -9,7 +9,7 @@ window_height: int=880
 
 default_main_color: str = 'dark'
 #default_sub_color: str = 'green'
-default_sub_color: str = './themes/yellow.json'
+default_sub_color: str = './themes/zero.json'
 
 #### REGEX HIGHLIGHT 
 highlight_bg_color: str='#e7e707'    
