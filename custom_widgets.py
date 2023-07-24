@@ -91,7 +91,6 @@ class CustomSheet(Sheet):
         # continue here theme = self.adapt_theme(mode, )
         self.set_options(**theme, redraw=False)
         self.config(bg=theme["table_bg"])
-        
 
     def get_patterns(self, pattern_filter_list: list) -> list:
         selected_rows = self.get_selected_rows(get_cells=False, get_cells_as_rows=True)
@@ -122,6 +121,34 @@ class CustomSheet(Sheet):
                         list.remove(row_with_data[0])
 
         return filter_list
+    
+    def dark_mode(self, light_header_color):
+        self.set_options(table_bg="#3D3D3D", 
+                        top_left_bg="#3D3D3D",
+                        frame_bg="#3D3D3D", 
+                        popup_menu_bg="#3D3D3D", 
+                        header_bg="#4E4E4E", 
+                        index_bg="#4E4E4E",
+                        table_fg="#F5F5F5",
+                        header_fg=light_header_color,
+                        popup_menu_highlight_bg=light_header_color,
+                        table_selected_cells_border_fg=light_header_color,
+                        table_selected_rows_border_fg=light_header_color,
+                        table_selected_columns_border_fg=light_header_color)
+        
+    def light_mode(self, dark_header_color):
+        self.set_options(table_bg="#F5F5F5", 
+                        top_left_bg="#F5F5F5",
+                        frame_bg="#F5F5F5", 
+                        popup_menu_bg="#F5F5F5", 
+                        header_bg="#ECECEC", 
+                        index_bg="#ECECEC",
+                        table_fg="#3D3D3D",
+                        header_fg=dark_header_color,
+                        popup_menu_highlight_bg=dark_header_color,
+                        table_selected_cells_border_fg=dark_header_color,
+                        table_selected_rows_border_fg=dark_header_color,
+                        table_selected_columns_border_fg=dark_header_color)
     
 class CustomMessagebox(customtkinter.CTkToplevel):
     def __init__(self, title: str="", label: str="", text: str="", geometry: str="", *args: any, **kwargs: any):

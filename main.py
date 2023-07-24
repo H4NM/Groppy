@@ -6,7 +6,6 @@ from settings import *
 import re, customtkinter, json
 from threading import Thread
 from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomTabView
-from PIL import Image
 from typing import Union
 
 class Groppy(customtkinter.CTk):
@@ -15,13 +14,14 @@ class Groppy(customtkinter.CTk):
         self.initialize_main_window()
 
         self.declare_variables()
-        self.declare_images()
-
         self.initialize_left_sidebar()
         self.initialize_middle_components()
         self.initialize_right_sidebar()
 
         self.declare_default_states()
+        self.light_text_color, self.dark_text_color = self.patterns_label.cget("text_color")
+        self.unique_light_color, self.unique_dark_color = self.sidebar_button_logfile.cget("fg_color")
+        print(self.unique_light_color, self.unique_dark_color)
         self.update_color_scheme()
 
     def initialize_main_window(self):
@@ -36,7 +36,6 @@ class Groppy(customtkinter.CTk):
         self.grid_columnconfigure((0,15,16), weight=0)
         self.grid_rowconfigure((1), weight=3)
      
-
     def declare_variables(self):
         """
         Declares variables
@@ -57,17 +56,6 @@ class Groppy(customtkinter.CTk):
         
         self.main_color = default_main_color 
         self.sub_color = default_sub_color
-
-    def declare_images(self):
-        """
-        Declares and loads the images to the variables used by different buttons
-        """
-        self.clear_button_img = customtkinter.CTkImage(light_image=Image.open(clear_button_path), size=(20, 20))
-        self.getmatches_button_img = customtkinter.CTkImage(light_image=Image.open(getmatches_button_path), size=(25, 25))
-        self.getesfields_button_img = customtkinter.CTkImage(light_image=Image.open(getesfields_button_path), size=(20, 20))
-        self.match_button_img = customtkinter.CTkImage(light_image=Image.open(match_button_path), size=(20, 20))
-        self.save_button_img = customtkinter.CTkImage(light_image=Image.open(save_button_path), size=(20, 20))
-        self.add_button_img = customtkinter.CTkImage(light_image=Image.open(add_button_path), size=(20, 20))
 
     def initialize_left_sidebar(self):
         """
@@ -202,15 +190,11 @@ class Groppy(customtkinter.CTk):
 
         ### JSON BUTTON GET FIELDS
         self.sidebar_button_json_fields = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_local_file), 
-                                                                  text=getjsonfield_button_name, 
-                                                                  compound="left",
-                                                                  image=self.getesfields_button_img,
+                                                                  text=getjsonfield_button_name,
                                                                   command=lambda: self.compute(self.get_json_field_data),
                                                                   font=small_font)
                                                                   
         self.sidebar_button_json_fields.grid(row=4, column=0, columnspan=6, padx=10, pady=(5,10), sticky="we")
-
-
 
     def initialize_es_tabview(self):
         ### ES HOST LABEL
@@ -381,9 +365,7 @@ class Groppy(customtkinter.CTk):
 
         ### ES BUTTON GET FIELDS
         self.sidebar_button_es_fields = customtkinter.CTkButton(self.load_data_tabview.tab(load_data_tabview_es), 
-                                                                text=getesfield_button_name,
-                                                                compound="left", 
-                                                                image=self.getesfields_button_img, 
+                                                                text=getesfield_button_name, 
                                                                 command=lambda: self.compute(self.get_es_field_data),
                                                                 font=small_font)
         self.sidebar_button_es_fields.grid(row=14, column=0, columnspan=3, padx=5, pady=10)
@@ -406,9 +388,8 @@ class Groppy(customtkinter.CTk):
         self.regexp_entry.grid(row=0,column=1, columnspan=13, padx=(20, 0),pady=(20, 20), sticky="we")
 
         ### MIDDLE FRAME - MATCH BUTTON
-        self.match_entry_button = customtkinter.CTkButton(self, text=match_button_name, 
-                                                          compound="left", 
-                                                          image=self.match_button_img,  
+        self.match_entry_button = customtkinter.CTkButton(self, 
+                                                          text=match_button_name,
                                                           command=self.highlight, 
                                                           width=20,
                                                           font=small_font)
@@ -422,9 +403,7 @@ class Groppy(customtkinter.CTk):
 
         ### ENTRY FRAME - EXPORT BUTTON
         self.export_entry_button = customtkinter.CTkButton(self.entry_frame_middle, 
-                                                           text=add_pattern_button_name, 
-                                                           compound="left", 
-                                                           image=self.add_button_img, 
+                                                           text=add_pattern_button_name,
                                                            command=self.add_pattern_to_table,
                                                            font=small_font)
         self.export_entry_button.grid(row=0, rowspan=2, column=1, padx=(5,5), pady=(5,5), sticky="we")
@@ -524,9 +503,8 @@ class Groppy(customtkinter.CTk):
         self.patterns_sheet.disable_bindings("double_click_column_resize")    
 
         ### RIGHT FRAME - EXPORT PATTERNS BUTTON
-        self.sidebar_button_export_patterns = customtkinter.CTkButton(self.sidebar_frame_right, text="", 
-                                                                      compound="left", 
-                                                                      image=self.save_button_img, 
+        self.sidebar_button_export_patterns = customtkinter.CTkButton(self.sidebar_frame_right, 
+                                                                      text=export_patterns_button_name, 
                                                                       command=self.export_patterns, 
                                                                       width=10,
                                                                       font=small_font)
@@ -544,11 +522,10 @@ class Groppy(customtkinter.CTk):
         self.filter_box.configure(state="disabled")       
 
         ### RIGHT FRAME - CLEAR FILTER BUTTON
-        self.filter_button = customtkinter.CTkButton(self.sidebar_frame_right, text="", 
-                                                     command=self.clear_filters, 
-                                                     compound="left", 
-                                                     image=self.clear_button_img, 
+        self.filter_button = customtkinter.CTkButton(self.sidebar_frame_right, 
+                                                     command=self.clear_filters,
                                                      width=10,
+                                                     text=clear_patterns_button_name,
                                                      font=small_font) 
         self.filter_button.grid(row=7, column=0, padx=50, pady=10, sticky="n")
 
@@ -556,8 +533,6 @@ class Groppy(customtkinter.CTk):
         self.sidebar_button_get_matches = customtkinter.CTkButton(self.sidebar_frame_right, 
                                                                   height=20, 
                                                                   text=getmatches_button_name, 
-                                                                  compound="left", 
-                                                                  image=self.getmatches_button_img, 
                                                                   command=lambda: self.compute(self.get_pattern_matches), 
                                                                   font=large_font)
         self.sidebar_button_get_matches.grid(row=8, rowspan=2,column=0, padx=20, pady=20, sticky="nsew")
@@ -684,7 +659,6 @@ class Groppy(customtkinter.CTk):
         return wrapper
 
     def get_json_field_data(self):
-    
         try:
             self.json_field = self.json_field_combobox.get().strip()
             json_data = other_funcs.extract_jsonfile_field_data(self.json_data, self.json_field, unique=self.get_unique_jsonfile_results)
@@ -694,7 +668,6 @@ class Groppy(customtkinter.CTk):
             CustomMessagebox(title=error_msg.__class__.__name__, label=RETURN_MESSAGES['unsuccessful_retrieval_of_jsonfile_data'], text=str(error_msg), geometry=self.messagebox_geometry)
         finally:
             self.hide_loading()
-
 
     def compute(self, func: callable):
         self.show_loading()
@@ -913,24 +886,22 @@ class Groppy(customtkinter.CTk):
             self.main_color = "dark"
         else:
             self.main_color = "light"
+        self.switch_main_appearance.configure(text=self.get_color_switch_label())
         self.update_color_scheme()
 
     def update_color_scheme(self):
         customtkinter.set_appearance_mode(self.main_color)
-        self.switch_main_appearance.configure(text=self.get_color_switch_label())
         for object in self.table_list:
-            object.change_theme(theme=self.main_color+" "+self.sub_color)
             if self.main_color == "dark":
-                object.set_options(table_bg="#3D3D3D", 
-                                   top_left_bg="#3D3D3D",
-                                   frame_bg="#3D3D3D", 
-                                   popup_menu_bg="#3D3D3D", 
-                                   header_bg="#4E4E4E", 
-                                   index_bg="#4E4E4E")
+                object.dark_mode(self.unique_light_color)
+            elif self.main_color == "light":
+                object.light_mode(self.unique_dark_color)
+            else:
+                object.light_mode(self.unique_dark_color)
             
     def get_color_switch_label(self) -> str:
         return self.main_color.capitalize() + " Mode"
-
+        
     def read_patterns(self):
         patternsfile = customtkinter.filedialog.askopenfilename(title="Please select a pattern file") 
         if patternsfile:                           
@@ -1092,6 +1063,16 @@ class Groppy(customtkinter.CTk):
                 textfile_lines.append(line)
         return textfile_lines
 
+def load_design():
+    #Mode design - Light/Dark/System
+    customtkinter.set_appearance_mode(default_main_color)
+    #Color scheme - Dark-blue/green/blue/custom  
+    customtkinter.set_default_color_theme(default_sub_color)  
+    #Font
+    customtkinter.FontManager.load_font(custom_font)
+
+
 if __name__ == "__main__":
+    load_design()
     groppy_app = Groppy()
     groppy_app.mainloop()

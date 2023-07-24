@@ -4,18 +4,12 @@ import customtkinter
 __author__='H4NM'
 app_title: str='Groppy'
 app_version: str='1.1.0'
-
-default_main_color: str = 'dark'
-default_sub_color: str = 'green'
-#default_sub_color: str = './themes/blue.json'
-
 window_width: int=1500
 window_height: int=880
 
-### THEMES
-customtkinter.set_appearance_mode(default_main_color)  # Modes: 'System' (standard), 'Dark', 'Light' 
-customtkinter.set_default_color_theme(default_sub_color)  # Themes: 'blue' (standard), 'green', 'dark-blue'
-
+default_main_color: str = 'dark'
+#default_sub_color: str = 'green'
+default_sub_color: str = './themes/yellow.json'
 
 #### REGEX HIGHLIGHT 
 highlight_bg_color: str='#e7e707'    
@@ -28,16 +22,16 @@ highlight_fg_color: str='#078dd5'
 maximum_matched_fields: int=14
 
 ### FONTS 
-customtkinter.FontManager.load_font('./fonts/DM Mono.ttf')
-main_font: tuple=('DM Mono', 13, 'normal')
+custom_font='./fonts/DM Mono.ttf'
+main_font: str='DM Mono'
 log_box_font: tuple=('Arial',15,'bold')
 loading_label_size: int=32
-sheet_header_font:tuple=('DM Mono', 10, 'normal')
-sheet_font: tuple=('DM Mono', 9, 'normal')
-small_font: tuple=('DM Mono', 12, 'normal')
-medium_font: tuple=('DM Mono', 14, 'normal')
-large_font: tuple=('DM Mono', 20, 'normal')
-extra_large_font: tuple=('DM Mono', 32, 'normal')
+sheet_header_font:tuple=(main_font, 10, 'normal')
+sheet_font: tuple=(main_font, 9, 'normal')
+small_font: tuple=(main_font, 12, 'normal')
+medium_font: tuple=(main_font, 14, 'normal')
+large_font: tuple=(main_font, 20, 'normal')
+extra_large_font: tuple=(main_font, 32, 'normal')
 
 
 #### SIZES
@@ -76,8 +70,8 @@ getesfield_button_name: str='Get field value'
 getjsonfield_button_name: str='Get json key value'
 match_button_name: str='Match'
 add_pattern_button_name: str='Add pattern'
-export_patterns_button_name: str='Export patterns to file'
-clear_patterns_button_name: str='Clear patterns'
+export_patterns_button_name: str='Save'
+clear_patterns_button_name: str='Clear'
 getmatches_button_name: str='Test patterns'
 automatch_label: str='Auto match'
 bg_highlight_label: str='Background'
