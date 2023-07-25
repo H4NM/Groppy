@@ -54,34 +54,20 @@ class CustomSheet(Sheet):
                         list.remove(row_with_data[0])
 
         return filter_list
-    
-    def dark_mode(self, light_header_color):
-        self.set_options(table_bg="#3D3D3D", 
-                        top_left_bg="#3D3D3D",
-                        frame_bg="#3D3D3D", 
-                        popup_menu_bg="#3D3D3D", 
-                        header_bg="#4E4E4E", 
-                        index_bg="#4E4E4E",
-                        table_fg="#F5F5F5",
-                        header_fg=light_header_color,
-                        popup_menu_highlight_bg=light_header_color,
-                        table_selected_cells_border_fg=light_header_color,
-                        table_selected_rows_border_fg=light_header_color,
-                        table_selected_columns_border_fg=light_header_color)
-        
-    def light_mode(self, dark_header_color):
-        self.set_options(table_bg="#F5F5F5", 
-                        top_left_bg="#F5F5F5",
-                        frame_bg="#F5F5F5", 
-                        popup_menu_bg="#F5F5F5", 
-                        header_bg="#ECECEC", 
-                        index_bg="#ECECEC",
-                        table_fg="#3D3D3D",
-                        header_fg=dark_header_color,
-                        popup_menu_highlight_bg=dark_header_color,
-                        table_selected_cells_border_fg=dark_header_color,
-                        table_selected_rows_border_fg=dark_header_color,
-                        table_selected_columns_border_fg=dark_header_color)
+  
+    def update_design(self, main_color: str, second_color: str, third_color: str, text_color:str):
+        self.set_options(table_bg=main_color, 
+                        top_left_bg=main_color,
+                        frame_bg=main_color, 
+                        popup_menu_bg=main_color, 
+                        header_bg=third_color, 
+                        index_bg=third_color,
+                        table_fg=text_color,
+                        header_fg=second_color,
+                        popup_menu_highlight_bg=second_color,
+                        table_selected_cells_border_fg=second_color,
+                        table_selected_rows_border_fg=second_color,
+                        table_selected_columns_border_fg=second_color)
     
 class CustomMessagebox(customtkinter.CTkToplevel):
     def __init__(self, title: str="", label: str="", text: str="", geometry: str="", *args: any, **kwargs: any):
@@ -116,16 +102,44 @@ class CustomMessagebox(customtkinter.CTkToplevel):
         self.attributes("-topmost", True)
 
 class RegexHelpMessagebox(customtkinter.CTkToplevel):
-     def __init__(self, geometry: str="", *args: any, **kwargs: any):
+     def __init__(self, main_color: str="", sub_color: str="", first_color: str="", second_color: str="", third_color: str="", text_color:str="", geometry: str="", *args: any, **kwargs: any):
         super().__init__(*args, **kwargs)
         self.wm_iconbitmap(app_icon)
-
         self.title(regex_help_window_title)
-        self.geometry(geometry)
+        self.geometry("%dx%d" % (regex_window_width, regex_window_height))
         self.grid_columnconfigure((0), weight=1)
         self.grid_rowconfigure((0,1), weight=2)
         self.resizable(False,False)
+        self.regex_help_sheet = CustomSheet(self,
+                        height=420,
+                        theme=main_color+" "+sub_color,
+                        show_x_scrollbar = True,
+                        show_y_scrollbar = False,
+                        empty_horizontal = False,
+                        empty_vertical = False,
+                        show_top_left = False,
+                        show_row_index = True,
+                        auto_resize_default_row_index=True,
+                        headers=regex_help_headers,
+                        data=regex_help_data)
+        self.regex_help_sheet.grid(row = 0, column = 0, columnspan=2, sticky = "nswe")
+        self.regex_help_sheet.column_width(column=0, width=115)        
+        self.regex_help_sheet.column_width(column=1, width=70)   
+        self.regex_help_sheet.column_width(column=2, width=850)   
+        self.regex_help_sheet.enable_bindings("double_click_column_resize")
 
+        ok_button = customtkinter.CTkButton(self, 
+                                            text="OK", 
+                                            command=self.destroy, 
+                                            width=80, 
+                                            font=medium_font)
+        ok_button.grid(row=1, column=0, padx=10, pady=(0,10), sticky="s")
+        self.attributes("-topmost", True)
+        self.regex_help_sheet.update_design(first_color,
+                                            second_color, 
+                                            third_color,
+                                            text_color)
+             
 class CustomTextBox(customtkinter.CTkTextbox):
     def __init__(self, *args: any, **kwargs: any):
         super().__init__(*args, **kwargs)

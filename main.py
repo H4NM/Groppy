@@ -5,7 +5,7 @@ from settings import *
 #External modules
 import re, customtkinter, json
 from threading import Thread
-from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomTabView
+from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomTabView, RegexHelpMessagebox
 from typing import Union
 
 class Groppy(customtkinter.CTk):
@@ -19,8 +19,10 @@ class Groppy(customtkinter.CTk):
         self.initialize_right_sidebar()
 
         self.declare_default_states()
-        self.light_text_color, self.dark_text_color = self.patterns_label.cget("text_color")
+        self.light_text_color, self.dark_text_color = self.application_title.cget("text_color")
         self.unique_light_color, self.unique_dark_color = self.sidebar_button_logfile.cget("fg_color")
+        self.fg_light_color, self.fg_dark_color = self.sidebar_frame_left.cget("fg_color")
+        self.border_light_color, self.border_dark_color = self.sidebar_frame_left.cget("border_color")
         self.update_color_scheme()
 
     def initialize_main_window(self):
@@ -30,7 +32,6 @@ class Groppy(customtkinter.CTk):
         self.wm_iconbitmap(app_icon)
         self.title(app_title+"/"+app_version)
         self.geometry("%dx%d" % (window_width, window_height))
-        self.regex_help_messagebox_geometry="%dx%d" % (window_width/2, window_height/2)
         self.messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/4, self.winfo_y() + window_height/4)
         self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10,11,12,13,14), weight=1)
         self.grid_columnconfigure((0,15,16), weight=0)
@@ -65,10 +66,10 @@ class Groppy(customtkinter.CTk):
         self.sidebar_frame_left.grid(row=0, column=0, rowspan=4, sticky="nsew")
         self.sidebar_frame_left.grid_rowconfigure(6, weight=1)
     
-        self.load_field_label = customtkinter.CTkLabel(self.sidebar_frame_left, 
-                                                       text=load_field_label, 
-                                                       font=medium_font)
-        self.load_field_label.grid(row=0, column=0, columnspan=5, padx=10, pady=(5, 0), sticky="n")
+        self.application_title = customtkinter.CTkLabel(self.sidebar_frame_left, 
+                                                       text=app_title, 
+                                                       font=large_font)
+        self.application_title.grid(row=0, column=0, columnspan=5, padx=10, pady=(5, 0), sticky="n")
         
         ### LOAD FIELD TABVIEW 
         self.load_data_tabview =  CustomTabView(self.sidebar_frame_left, 
@@ -427,9 +428,7 @@ class Groppy(customtkinter.CTk):
         self.re_help_button = customtkinter.CTkButton(self.entry_frame_middle, 
                                                       width=20,
                                                       text=regex_help_button_name,
-                                                      command=lambda:   CustomMessagebox(title=regex_help_window_title, 
-                                                                        text=regex_help_text, 
-                                                                        geometry=self.regex_help_messagebox_geometry),
+                                                      command=self.create_regex_help_msgbox,
                                                       font=small_font)
         
 
@@ -905,12 +904,34 @@ class Groppy(customtkinter.CTk):
         customtkinter.set_appearance_mode(self.main_color)
         for object in self.table_list:
             if self.main_color == "dark":
-                object.dark_mode(self.unique_light_color)
-            elif self.main_color == "light":
-                object.light_mode(self.unique_dark_color)
+                object.update_design(self.fg_dark_color,
+                                 self.unique_light_color, 
+                                 self.border_dark_color,
+                                 self.light_text_color)
             else:
-                object.light_mode(self.unique_dark_color)
+                object.update_design(self.fg_light_color, 
+                                 self.unique_dark_color,
+                                 self.border_light_color,
+                                 self.dark_text_color)
+                
+    def create_regex_help_msgbox(self):
+        if self.main_color == "dark":
+            RegexHelpMessagebox(main_color=self.main_color,
+                                sub_color=self.sub_color,
+                                first_color=self.fg_dark_color,
+                                second_color=self.unique_light_color,
+                                third_color=self.border_dark_color,
+                                text_color=self.light_text_color)
+        else:
+            RegexHelpMessagebox(main_color=self.main_color,
+                                sub_color=self.sub_color,
+                                first_color=self.fg_light_color,
+                                second_color=self.unique_dark_color,
+                                third_color=self.border_light_color,
+                                text_color=self.dark_text_color)
             
+
+
     def get_color_switch_label(self) -> str:
         return self.main_color.capitalize() + " Mode"
         
@@ -1080,8 +1101,6 @@ def load_design():
     customtkinter.set_appearance_mode(default_main_color)
     #Color scheme - Dark-blue/green/blue/custom  
     customtkinter.set_default_color_theme(default_sub_color)  
-    #Font
-    customtkinter.FontManager.load_font(custom_font)
 
 
 if __name__ == "__main__":
