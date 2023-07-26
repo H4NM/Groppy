@@ -3,7 +3,7 @@ import other_funcs, es_funcs
 from settings import *
 
 #External modules
-import re, customtkinter, json
+import re, customtkinter, json, os
 from threading import Thread
 from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomTabView, RegexHelpMessagebox
 from typing import Union
@@ -116,6 +116,7 @@ class Groppy(customtkinter.CTk):
                                                                      checkbox_height=checkbox_size,
                                                                      font=small_font)
         self.patterns_stats_frame_switch.grid(row=2, column=0,columnspan=2,padx=20, pady=(5, 5), sticky="w")
+
 
         ### APPEARANCE SWITCH
         self.switch_main_appearance = customtkinter.CTkSwitch(master=self.sidebar_appearance_frame_left, 
@@ -907,12 +908,12 @@ class Groppy(customtkinter.CTk):
                 object.update_design(self.fg_dark_color,
                                  self.unique_light_color, 
                                  self.border_dark_color,
-                                 self.light_text_color)
+                                 self.dark_text_color)
             else:
                 object.update_design(self.fg_light_color, 
                                  self.unique_dark_color,
                                  self.border_light_color,
-                                 self.dark_text_color)
+                                 self.light_text_color)
                 
     def create_regex_help_msgbox(self):
         if self.main_color == "dark":
@@ -921,14 +922,14 @@ class Groppy(customtkinter.CTk):
                                 first_color=self.fg_dark_color,
                                 second_color=self.unique_light_color,
                                 third_color=self.border_dark_color,
-                                text_color=self.light_text_color)
+                                text_color=self.dark_text_color)
         else:
             RegexHelpMessagebox(main_color=self.main_color,
                                 sub_color=self.sub_color,
                                 first_color=self.fg_light_color,
                                 second_color=self.unique_dark_color,
                                 third_color=self.border_light_color,
-                                text_color=self.dark_text_color)
+                                text_color=self.light_text_color)
             
 
 
@@ -1096,7 +1097,22 @@ class Groppy(customtkinter.CTk):
                 textfile_lines.append(line)
         return textfile_lines
 
+def check_settings_files() -> bool:
+    if os.fileexists(settings_file):
+
+        return True
+    else:
+        create_settings_file
+    return False
+
+def create_settings_file():
+    pass
+
+def load_settings():
+    default_settings
+
 def load_design():
+    default_settings
     #Mode design - Light/Dark/System
     customtkinter.set_appearance_mode(default_main_color)
     #Color scheme - Dark-blue/green/blue/custom  

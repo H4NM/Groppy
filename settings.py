@@ -11,7 +11,22 @@ regex_window_height: int=500
 
 default_main_color: str = 'dark'
 #default_sub_color: str = 'green'
-default_sub_color: str = './themes/Green.json'
+default_sub_color: str = 'Blue'
+available_themes_dict: dict = {'Blue': './themes/Blue.json', 
+                          'Dark-Blue': './themes/Dark-Blue.json',
+                          'DaynNight': './themes/DaynNight.json',
+                          'FlipperZero': './themes/FlipperZero.json',
+                          'GhostTrain': './themes/GhostTrain.json',
+                          'Green': './themes/Green.json',
+                          'Greengage': './themes/Greengage.json',
+                          'GreyGhost': './themes/GreyGhost.json',
+                          'Hades': './themes/Hades.json',
+                          'Harlequin': './themes/Harlequin.json',
+                          'NightTrain': './themes/NightTrain.json',
+                          'Oceanix': './themes/Oceanix.json',
+                          'TestCard': './themes/TestCard.json',
+                          'TrojanBlue': './themes/TrojanBlue.json',
+                          'Yellow': './themes/Yellow.json'}
 
 #### REGEX HIGHLIGHT 
 highlight_bg_color: str='#e7e707'    
@@ -169,13 +184,17 @@ es_bogus_query: str='*'
 json_bogus_field: str=''
 es_max_docs: int=1500
 bogus_textbox_text: str='Regex me please..'
+bogus_b64_api_key: str='UmVnZXhpbmcgaXMgZnVuIQ=='
 
-#### RESOURCES
-app_icon: str=r'.\img\groppy.ico'
-clear_button_path: str=r'.\img\clear.png'
-getmatches_button_path: str=r'.\img\getmatches.png'
-getesfields_button_path: str=r'.\img\getesfields.png'
-match_button_path: str=r'.\img\match.png'
-save_button_path: str=r'.\img\save.png'
-add_button_path: str=r'.\img\add.png'
-
+#### SETTINGS
+settings_file: str="./settings.json"
+default_settings: dict={
+            "mode": default_main_color,
+            "theme": default_sub_color,
+            "elastic_host": es_bogus_hostname,
+            "elastic_port": es_bogus_port,
+            "elastic_auth": False,
+            "elastic_user": es_bogus_username,
+            "elastic_api_key_is_used": False,
+            "elastic_api_key": bogus_b64_api_key
+}
