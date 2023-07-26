@@ -9,7 +9,7 @@ from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomT
 from typing import Union
 
 class Groppy(customtkinter.CTk):
-    def __init__(self):
+    def __init__(self, app_settings):
         super().__init__()
         self.initialize_main_window()
 
@@ -25,6 +25,39 @@ class Groppy(customtkinter.CTk):
         self.border_light_color, self.border_dark_color = self.sidebar_frame_left.cget("border_color")
         self.update_color_scheme()
 
+        if not app_settings['successful_load']:
+            CustomMessagebox(title='Load settings', label=RETURN_MESSAGES['unsuccessful_retrieval_of_jsonfile_data'], text=app_settings['failure_reason'], geometry=self.messagebox_geometry)
+        
+        if app_settings['initial_start']:
+            CustomMessagebox(title='Welcome', label=RETURN_MESSAGES['welcome_msg'], text=RETURN_MESSAGES['welcome_info'], geometry=self.welcome_messagebox_geometry)
+        
+        self.enable_settings(app_settings)
+
+    def enable_settings(self, app_settings):
+        if app_settings['elastic_host']:
+            self.es_host_entry.insert(0, app_settings['elastic_host'])
+        
+        if app_settings['elastic_port']:
+            self.es_port_entry.insert(0, app_settings['elastic_port'])
+
+        if app_settings['elastic_auth']:
+            self.toggle_es_auth()
+
+        if app_settings['elastic_user']:
+            self.es_username_entry.insert(0, app_settings['elastic_user'])
+
+        if app_settings['elastic_api_key_is_used']:
+            self.toggle_es_api()
+        
+        if app_settings['elastic_api_key_value']:
+            self.api_key_entry.insert(0, app_settings['elastic_api_key_value'])
+
+        if app_settings['elastic_cert_is_used']:
+            self.toggle_es_cert()
+
+        if app_settings['elastic_cert_path']:
+            self.es_cert_entry.insert(0, app_settings['elastic_cert_path'])
+
     def initialize_main_window(self):
         """
         Initializes the window with components such as icon, title, geometry
@@ -33,6 +66,8 @@ class Groppy(customtkinter.CTk):
         self.title(app_title+"/"+app_version)
         self.geometry("%dx%d" % (window_width, window_height))
         self.messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/4, self.winfo_y() + window_height/4)
+        self.welcome_messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/2, self.winfo_y() + window_height/2)
+
         self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10,11,12,13,14), weight=1)
         self.grid_columnconfigure((0,15,16), weight=0)
         self.grid_rowconfigure((1), weight=3)
@@ -55,8 +90,8 @@ class Groppy(customtkinter.CTk):
         self.filter_list = [self.include, self.exclude]
         self.table_list = set()
         
-        self.main_color = default_main_color 
-        self.sub_color = default_sub_color
+        self.main_color = default_mode 
+        self.sub_color = default_theme
 
     def initialize_left_sidebar(self):
         """
@@ -594,20 +629,25 @@ class Groppy(customtkinter.CTk):
 
     def toggle_es_cert(self):
         if self.showing_es_cert:
+            self.es_cert_switch.deselect()
             self.es_cert_label.grid_forget()
             self.es_cert_entry.grid_forget()
         else:
             self.es_cert_label.grid(row=8, column=0, padx=(5,0), sticky="w")
             self.es_cert_entry.grid(row=8, column=1,columnspan=2, padx=(5,0), sticky="w")
+            self.es_cert_switch.select()
         self.showing_es_cert = not self.showing_es_cert
 
     def toggle_es_api(self):
         if self.showing_es_api:
+            self.api_key_switch.deselect()
             self.api_key_label.grid_forget()
             self.api_key_entry.grid_forget()
         else:
             self.api_key_entry.grid(row=6, column=1,columnspan=2, padx=(5,0), sticky="w")
             self.api_key_label.grid(row=6, column=0, padx=(5,0), sticky="w")
+            self.api_key_switch.select()
+
         self.showing_es_api = not self.showing_es_api
 
     def toggle_es_auth(self):
@@ -616,11 +656,13 @@ class Groppy(customtkinter.CTk):
             self.es_username_entry.grid_forget()
             self.es_password_label.grid_forget()
             self.es_password_entry.grid_forget()
+            self.auth_switch.deselect()
         else:
             self.es_password_entry.grid(row=4, column=1,columnspan=2, padx=(5,0), sticky="w")
             self.es_password_label.grid(row=4, column=0, padx=(5,0), sticky="w")
             self.es_username_entry.grid(row=3, column=1,columnspan=2, padx=(5,0), sticky="w")
             self.es_username_label.grid(row=3, column=0, padx=(5,0), sticky="w")
+            self.auth_switch.select()
         self.showing_es_auth = not self.showing_es_auth
 
     def toggle_patterns_frame(self):
@@ -1097,29 +1139,57 @@ class Groppy(customtkinter.CTk):
                 textfile_lines.append(line)
         return textfile_lines
 
-def check_settings_files() -> bool:
-    if os.fileexists(settings_file):
-
+def file_exists(file) -> bool:
+    if  os.path.exists(file):
         return True
     else:
-        create_settings_file
-    return False
+        return False
 
-def create_settings_file():
-    pass
+def create_settings_file(set_file):
+    settings = json.dumps(default_settings, indent=4)
+    with open(set_file, "wt") as settings_file: 
+        settings_file.write(settings)
 
-def load_settings():
-    default_settings
+def read_settings_file(set_file):
+    with open(set_file) as sf:
+        return json.load(sf)
 
-def load_design():
-    default_settings
-    #Mode design - Light/Dark/System
-    customtkinter.set_appearance_mode(default_main_color)
-    #Color scheme - Dark-blue/green/blue/custom  
-    customtkinter.set_default_color_theme(default_sub_color)  
+def load_design(app_settings):
+    try:
+        customtkinter.set_appearance_mode(app_settings['mode'])
+        customtkinter.set_default_color_theme(available_themes_dict[app_settings['theme']])
+    except Exception as error_msg:
+        customtkinter.set_appearance_mode(default_mode)
+        customtkinter.set_default_color_theme(available_themes_dict[default_theme])
+        app_settings['successful_load'] = False
+        app_settings['failure_reason'] = str(error_msg)
+    return app_settings
 
+def merge_custom_settings(default_settings, custom_settings):
+    for key in custom_settings:
+        if key in default_settings.keys():
+            default_settings[key] = custom_settings[key]
+    return default_settings
+
+def load_settings(set_file):
+    app_settings = default_settings
+    if not file_exists(set_file):
+        create_settings_file(set_file)
+        app_settings['initial_start'] = True
+    else:
+        app_settings['initial_start'] = False
+
+    try:
+        custom_app_settings = read_settings_file(set_file)
+        app_settings = merge_custom_settings(app_settings, custom_app_settings)
+        app_settings['successful_load'] = True
+    except Exception as error_msg:
+        app_settings['successful_load'] = False
+        app_settings['failure_reason'] = str(error_msg)
+    return app_settings
 
 if __name__ == "__main__":
-    load_design()
-    groppy_app = Groppy()
+    app_settings = load_settings(settings_file) 
+    app_settings = load_design(app_settings)
+    groppy_app = Groppy(app_settings)
     groppy_app.mainloop()

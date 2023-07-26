@@ -8,10 +8,9 @@ window_width: int=1500
 window_height: int=880
 regex_window_width: int=1100
 regex_window_height: int=500
-
-default_main_color: str = 'dark'
-#default_sub_color: str = 'green'
-default_sub_color: str = 'Blue'
+app_icon: str='./img/groppy.ico'
+default_mode: str = 'dark'
+default_theme: str = 'DaynNight'
 available_themes_dict: dict = {'Blue': './themes/Blue.json', 
                           'Dark-Blue': './themes/Dark-Blue.json',
                           'DaynNight': './themes/DaynNight.json',
@@ -147,25 +146,6 @@ filter_label: str='Filter'
 stats_appear_switch_label: str='View Pattern Stats'
 patterns_appear_switch_label: str='View Patterns'
 
-#### ERROR MESSAGES
-RETURN_MESSAGES: dict = { 
-                    'successful_connection': 'Managed to communicate with elasticsearch node',
-                    'unsuccessful_connection': 'Unable to communicate with elasticsearch node',
-                    'unsuccessful_retrieval_of_index': 'Unable to fetch index',
-                    'unsuccessful_retrieval_of_field': 'Unable to fetch field for index',
-                    'unsuccessful_retrieval_of_es_data': 'Unable to retrieve field from elasticsearch',
-                    'unsuccessful_retrieval_of_jsonfile_data': 'Unable to retrieve field from json file',
-                    'no_patterns_for_export': 'There are no patterns to export',
-                    'invalid_export_dest':'Unable to export patterns to provided destination',
-                    'successful_pattern_export':'Successfully saved the patterns',
-                    'no_log_to_match':'There is no log to match patterns against',
-                    'no_patterns_to_match':'There are no patterns to match against the log',
-                    'unsuccessful_log_file_load':'Unable to load the specified log file',
-                    'unsuccessful_grok_file_load':'Unable to load the specified grok patterns file',
-                    'unsuccessful_json_file_load':'Unable to load the specified json file',
-                    'unsuccessful_pattern_matches':'Unable to test the provided patterns to the given log'
-                    }
-
 
 #### ELASTIC
 requests_timeout: int=5
@@ -189,12 +169,45 @@ bogus_b64_api_key: str='UmVnZXhpbmcgaXMgZnVuIQ=='
 #### SETTINGS
 settings_file: str="./settings.json"
 default_settings: dict={
-            "mode": default_main_color,
-            "theme": default_sub_color,
+            "mode": default_mode,
+            "theme": default_theme,
             "elastic_host": es_bogus_hostname,
             "elastic_port": es_bogus_port,
             "elastic_auth": False,
-            "elastic_user": es_bogus_username,
-            "elastic_api_key_is_used": False,
-            "elastic_api_key": bogus_b64_api_key
+            "elastic_user": '',
+            "elastic_api_key_is_used": True,
+            "elastic_api_key_value": bogus_b64_api_key,
+            'elastic_cert_is_used': False,
+            'elastic_cert_path': ''
 }
+available_themes = ", ".join(list(available_themes_dict.keys()))
+
+#### ERROR MESSAGES
+RETURN_MESSAGES: dict = {
+                    'welcome_msg': f'Welcome to {app_title} version {app_version}!', 
+'welcome_info': f'''
+Groppy is meant to facilitate creating regex and grok patterns.
+In the left frame you may load local files such as log files, grok patterns and json files.
+There's also the possibility of retrieving field data from an elasticsearch cluster directly.
+
+Loaded grok patterns can be tested to measure their efficiency to effectivize regex creation productivity.
+Since the goal is to make the application easy and nice to use, there's also the option of configuring {app_title} in the file {settings_file}.
+
+Themes that may be used are {available_themes}.
+''',
+                    'successful_connection': 'Managed to communicate with elasticsearch node',
+                    'unsuccessful_connection': 'Unable to communicate with elasticsearch node',
+                    'unsuccessful_retrieval_of_index': 'Unable to fetch index',
+                    'unsuccessful_retrieval_of_field': 'Unable to fetch field for index',
+                    'unsuccessful_retrieval_of_es_data': 'Unable to retrieve field from elasticsearch',
+                    'unsuccessful_retrieval_of_jsonfile_data': 'Unable to read data from json file',
+                    'no_patterns_for_export': 'There are no patterns to export',
+                    'invalid_export_dest':'Unable to export patterns to provided destination',
+                    'successful_pattern_export':'Successfully saved the patterns',
+                    'no_log_to_match':'There is no log to match patterns against',
+                    'no_patterns_to_match':'There are no patterns to match against the log',
+                    'unsuccessful_log_file_load':'Unable to load the specified log file',
+                    'unsuccessful_grok_file_load':'Unable to load the specified grok patterns file',
+                    'unsuccessful_json_file_load':'Unable to load the specified json file',
+                    'unsuccessful_pattern_matches':'Unable to test the provided patterns to the given log'
+                    }

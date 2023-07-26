@@ -70,7 +70,7 @@ class CustomSheet(Sheet):
                         table_selected_columns_border_fg=second_color)
     
 class CustomMessagebox(customtkinter.CTkToplevel):
-    def __init__(self, title: str="", label: str="", text: str="", geometry: str="", *args: any, **kwargs: any):
+    def __init__(self, title: str="", label: str="", text: str="", geometry: str="400x500", *args: any, **kwargs: any):
         super().__init__(*args, **kwargs)
         self.wm_iconbitmap(app_icon)
 
