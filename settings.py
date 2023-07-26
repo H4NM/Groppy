@@ -193,7 +193,10 @@ There's also the possibility of retrieving field data from an elasticsearch clus
 Loaded grok patterns can be tested to measure their efficiency to effectivize regex creation productivity.
 Since the goal is to make the application easy and nice to use, there's also the option of configuring {app_title} in the file {settings_file}.
 
-Themes that may be used are {available_themes}.
+You can configure {app_title} to start with either 'dark' or 'light' mode. 
+It can have different themes. These may be {available_themes}.
+
+You can also add settings regarding an elasticsearch cluster in order to skip entering the details everytime on start.
 ''',
                     'successful_connection': 'Managed to communicate with elasticsearch node',
                     'unsuccessful_connection': 'Unable to communicate with elasticsearch node',
