@@ -1,14 +1,19 @@
  
 # Groppy 
 
-[![Python Versions](https://github.com/H4NM/Groppy/blob/dev/badges/pyversion.svg)](https://docs.python.org/3/howto/regex.html)
-![Groppy version](https://github.com/H4NM/Groppy/blob/dev/badges/groppyversion.svg)
-[![Packages](https://github.com/H4NM/Groppy/blob/dev/badges/packages.svg)](https://pypi.org/)
-![License](https://github.com/H4NM/Groppy/blob/dev/badges/license.svg)
+[![Python Versions](https://github.com/H4NM/Groppy/blob/main/badges/pyversion.svg)](https://docs.python.org/3/howto/regex.html)
+![Groppy version](https://github.com/H4NM/Groppy/blob/main/badges/groppyversion.svg)
+[![Packages](https://github.com/H4NM/Groppy/blob/main/badges/packages.svg)](https://pypi.org/)
+![License](https://github.com/H4NM/Groppy/blob/main/badges/license.svg)
 
-A desktop application written purely in python using [customtkinter](https://customtkinter.tomschimansky.com/) and [tksheet](https://github.com/ragardner/tksheet) (and [requests](https://pypi.org/project/requests/)). Requires python 3.11 to be able to perform ![atomic grouping and possessive quantifiers](https://learnbyexample.github.io/python-regex-possessive-quantifier/). This application is meant to address the challenges of creating regex patterns and utilizing them efficiently with grok patterns. From my personal experience, creating the grok patterns is one thing, but realizing the already existing patterns is overlooked, whereas you may find an person creating the same regex pattern for a signature that may already be applicable. 
+A desktop application written purely in python using [customtkinter](https://customtkinter.tomschimansky.com/) and [tksheet](https://github.com/ragardner/tksheet) (and [requests](https://pypi.org/project/requests/)). This application is the ideal friend of someone who wants to create regex patterns. The application facilitates managing grok patterns, reading JSON-files and parsing fields in an ELK environment. 
 
-## Features
+### Details
+The primary focus of this application was to facilitate working with regex. Although, i wrote this program with focus on minmal dependency on other libraries to make version control and code transparency better. This resulted in customtkinter, tksheet, requests, json, re and os being the main utilized libraries - all well known and trusted. Less is more.
+The application requires python 3.11+ in order to perform [atomic grouping and possessive quantifiers](https://learnbyexample.github.io/python-regex-possessive-quantifier/). However, if no such regex is being used, the application can still be utilized given that included libraries support a lower version.
+
+
+##  Features
 
 - Create and test regex
 - Query data from an elasticsearch REST API. 
@@ -17,25 +22,49 @@ A desktop application written purely in python using [customtkinter](https://cus
   - HTTP Basic auth, API-Token, SSL Cert
 - Load local text files 
   - Filter to load unique rows
-- Load local grok patterns 
+- Load local grok patterns
+- Load local JSON file
+  - Specify which key to retrieve data from 
 - Test grok patterns to see how applicable they are
   - Tests every pattern towards every row 
   - Filter which grok patterns that should be tested (include/exclude) 
 - Export grok patterns
+- Multiple different themes
+  - Blue, Dark-Blue, DaynNight, FlipperZero, GhostTrain, Green, Greengage, GreyGhost, Hades, Harlequin, NightTrain, Oceanix, TestCard, TrojanBlue, Yellow 
 - Dark and Light mode
-  
-### Light Mode
-![user interface - Light Mode](https://github.com/H4NM/Groppy/blob/main/img/user_interface.png)
+- Configuration file to save settings such as mode, theme, elasticsearch details
 
-### Dark Mode
-![user interface - Light Mode](https://github.com/H4NM/Groppy/blob/main/img/user_interface_dark.png)
+## Themes
 
+#### TrojanBlue
+![TrojanBlue](https://github.com/H4NM/Groppy/blob/main/img/theme-7.png)
 
-#### Pending progress 2023-06-15
+##### Hades
+![Hades](https://github.com/H4NM/Groppy/blob/main/img/theme-1.png)
 
-- Simplifying left sidebar by separating local file inclusions and elasticsearch data retrieval
-- Adding the feature of loading a json file and enabling a similar field retrieval as for the query of field data from elasticsearch. i.e. you'll be able to specify which key from where data will be read from one or multiple json objects directly from a file.
+##### GhostTrain
+![GhostTrain](https://github.com/H4NM/Groppy/blob/main/img/theme-5.png)
 
-#### Desired features
+##### FlipperZero
+![FlipperZero](https://github.com/H4NM/Groppy/blob/main/img/theme-2.png)
 
-- Adding a config file where color schemas and other settings may be specified and loaded on application start.
+##### Greengage
+![Greengage](https://github.com/H4NM/Groppy/blob/main/img/theme-6.png)
+
+## Settings file
+
+A file called settings.json will be created on first launch with the following settings that may be altered which are loaded upon start.
+```
+{
+    "mode": "Light",
+    "theme": "GhostTrain",
+    "elastic_host": "localhost",
+    "elastic_port": "9200",
+    "elastic_auth": false,
+    "elastic_user": "",
+    "elastic_api_key_is_used": true,
+    "elastic_api_key_value": "UmVnZXhpbmcgaXMgZnVuIQ==",
+    "elastic_cert_is_used": false,
+    "elastic_cert_path": ""
+}
+```
