@@ -14,7 +14,6 @@ class Groppy(customtkinter.CTk):
         self.initialize_main_window()
         self.load_color_schema(app_settings)
 
-
         self.declare_variables()
         self.initialize_left_sidebar()
         self.initialize_middle_components()
@@ -35,7 +34,7 @@ class Groppy(customtkinter.CTk):
         self.enable_settings(app_settings)
 
     def load_color_schema(self, app_settings: dict):
-        self.main_color = app_settings['mode'] 
+        self.main_color = app_settings['mode']
         self.sub_color = app_settings['theme']
 
     def enable_settings(self, app_settings: dict):
@@ -965,21 +964,22 @@ class Groppy(customtkinter.CTk):
                 
     def create_regex_help_msgbox(self):
         if self.main_color == "dark":
-            RegexHelpMessagebox(main_color=self.main_color,
-                                sub_color=self.sub_color,
+            RegexHelpMessagebox(mode=self.main_color,
+                                theme=self.sub_color,
                                 first_color=self.fg_dark_color,
                                 second_color=self.dark_text_color,
                                 third_color=self.border_dark_color,
                                 text_color=self.dark_text_color)
         else:
-            RegexHelpMessagebox(main_color=self.main_color,
-                                sub_color=self.sub_color,
+            RegexHelpMessagebox(mode=self.main_color,
+                                theme=self.sub_color,
                                 first_color=self.fg_light_color,
                                 second_color=self.light_text_color,
                                 third_color=self.border_light_color,
                                 text_color=self.light_text_color)
 
     def get_color_switch_label(self) -> str:
+        print("text: ", self.main_color.capitalize() + " Mode")
         return self.main_color.capitalize() + " Mode"
         
     def read_patterns(self):
@@ -1154,10 +1154,12 @@ def read_settings_file(set_file: str):
 
 def load_design(app_settings: str) -> dict:
     try:
-        customtkinter.set_appearance_mode(app_settings['mode'].lower())
+        app_settings['mode'] = app_settings['mode'].lower()
+        customtkinter.set_appearance_mode(app_settings['mode'])
         customtkinter.set_default_color_theme(available_themes_dict[app_settings['theme']])
     except Exception as error_msg:
-        customtkinter.set_appearance_mode(default_mode.lower())
+        app_settings['mode'] = default_mode.lower()
+        customtkinter.set_appearance_mode(app_settings['mode'])
         customtkinter.set_default_color_theme(available_themes_dict[default_theme])
         app_settings['successful_load'] = False
         app_settings['failure_reason'] = str(error_msg)
