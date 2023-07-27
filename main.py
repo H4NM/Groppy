@@ -979,7 +979,6 @@ class Groppy(customtkinter.CTk):
                                 text_color=self.light_text_color)
 
     def get_color_switch_label(self) -> str:
-        print("text: ", self.main_color.capitalize() + " Mode")
         return self.main_color.capitalize() + " Mode"
         
     def read_patterns(self):
