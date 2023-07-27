@@ -1,17 +1,19 @@
 #Custom modules
 import other_funcs, es_funcs
 from settings import *
+from custom_widgets import *
 
 #External modules
 import re, customtkinter, json, os
 from threading import Thread
-from custom_widgets import CustomMessagebox, CustomTextBox, CustomSheet, CustomTabView, RegexHelpMessagebox
 from typing import Union
 
 class Groppy(customtkinter.CTk):
     def __init__(self, app_settings):
         super().__init__()
         self.initialize_main_window()
+        self.load_color_schema(app_settings)
+
 
         self.declare_variables()
         self.initialize_left_sidebar()
@@ -20,7 +22,6 @@ class Groppy(customtkinter.CTk):
 
         self.declare_default_states()
         self.light_text_color, self.dark_text_color = self.application_title.cget("text_color")
-        self.unique_light_color, self.unique_dark_color = self.sidebar_button_logfile.cget("fg_color")
         self.fg_light_color, self.fg_dark_color = self.sidebar_frame_left.cget("fg_color")
         self.border_light_color, self.border_dark_color = self.sidebar_frame_left.cget("border_color")
         self.update_color_scheme()
@@ -33,7 +34,12 @@ class Groppy(customtkinter.CTk):
         
         self.enable_settings(app_settings)
 
-    def enable_settings(self, app_settings):
+    def load_color_schema(self, app_settings: dict):
+        self.main_color = app_settings['mode'] 
+        self.sub_color = app_settings['theme']
+
+    def enable_settings(self, app_settings: dict):
+
         if app_settings['elastic_host']:
             self.es_host_entry.insert(0, app_settings['elastic_host'])
         
@@ -65,8 +71,6 @@ class Groppy(customtkinter.CTk):
         self.wm_iconbitmap(app_icon)
         self.title(app_title+"/"+app_version)
         self.geometry("%dx%d" % (window_width, window_height))
-        self.messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/4, self.winfo_y() + window_height/4)
-        self.welcome_messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/2, self.winfo_y() + window_height/2)
 
         self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10,11,12,13,14), weight=1)
         self.grid_columnconfigure((0,15,16), weight=0)
@@ -89,10 +93,7 @@ class Groppy(customtkinter.CTk):
         self.exclude_sign="\U0000274C"
         self.filter_list = [self.include, self.exclude]
         self.table_list = set()
-        
-        self.main_color = default_mode 
-        self.sub_color = default_theme
-
+    
     def initialize_left_sidebar(self):
         """
         Initializes the left sidebar of the window and all of the components inside
@@ -606,6 +607,11 @@ class Groppy(customtkinter.CTk):
         self.tabview.grid_forget()
         self.sidebar_frame_right.grid_forget()
 
+        self.messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/2, self.winfo_y() + window_height/2)
+        self.welcome_messagebox_geometry="%d+%d" % (self.winfo_x() + window_width/2, self.winfo_y() + window_height/2)
+
+
+
     def toggle_get_unique_logfile_lines(self):
         if self.get_unique_logfile_lines:
             self.unique_logfile_lines_switch.deselect()
@@ -683,7 +689,7 @@ class Groppy(customtkinter.CTk):
             self.tabview.grid_forget()
             self.patterns_stats_frame_switch.deselect()
 
-    def get_es_server_details(function) -> callable:
+    def get_es_server_details(function: callable) -> callable:
         def wrapper(*args: any) -> callable:
             self = args[0]
             self.es_hostname=es_bogus_hostname if self.es_host_entry.get().strip() == "" else self.es_host_entry.get().strip()
@@ -948,12 +954,12 @@ class Groppy(customtkinter.CTk):
         for object in self.table_list:
             if self.main_color == "dark":
                 object.update_design(self.fg_dark_color,
-                                 self.unique_light_color, 
+                                 self.dark_text_color, 
                                  self.border_dark_color,
                                  self.dark_text_color)
             else:
                 object.update_design(self.fg_light_color, 
-                                 self.unique_dark_color,
+                                 self.light_text_color,
                                  self.border_light_color,
                                  self.light_text_color)
                 
@@ -962,18 +968,16 @@ class Groppy(customtkinter.CTk):
             RegexHelpMessagebox(main_color=self.main_color,
                                 sub_color=self.sub_color,
                                 first_color=self.fg_dark_color,
-                                second_color=self.unique_light_color,
+                                second_color=self.dark_text_color,
                                 third_color=self.border_dark_color,
                                 text_color=self.dark_text_color)
         else:
             RegexHelpMessagebox(main_color=self.main_color,
                                 sub_color=self.sub_color,
                                 first_color=self.fg_light_color,
-                                second_color=self.unique_dark_color,
+                                second_color=self.light_text_color,
                                 third_color=self.border_light_color,
                                 text_color=self.light_text_color)
-            
-
 
     def get_color_switch_label(self) -> str:
         return self.main_color.capitalize() + " Mode"
@@ -1106,13 +1110,7 @@ class Groppy(customtkinter.CTk):
             self.hide_loading()
 
     def read_jsonfile(self, jsonfile: str) -> Union[dict, list[dict]]:
-        """
-        Reads the provided json file and first tries to load it as a single json object. 
-        On failure, tries to load it with each line separated as a ndjson file. 
-        If that fails, returns an error.
-        If successful load, but contains no results. Returns an error.
-        Initiates the variable 'jd' as dict or list in the start to enable a check if it's empty in the finally block. 
-        """
+
         try:
             with open(jsonfile, "rt") as jf:
                 jd = {}
@@ -1145,33 +1143,33 @@ def file_exists(file) -> bool:
     else:
         return False
 
-def create_settings_file(set_file):
+def create_settings_file(set_file: str):
     settings = json.dumps(default_settings, indent=4)
     with open(set_file, "wt") as settings_file: 
         settings_file.write(settings)
 
-def read_settings_file(set_file):
+def read_settings_file(set_file: str):
     with open(set_file) as sf:
         return json.load(sf)
 
-def load_design(app_settings):
+def load_design(app_settings: str) -> dict:
     try:
-        customtkinter.set_appearance_mode(app_settings['mode'])
+        customtkinter.set_appearance_mode(app_settings['mode'].lower())
         customtkinter.set_default_color_theme(available_themes_dict[app_settings['theme']])
     except Exception as error_msg:
-        customtkinter.set_appearance_mode(default_mode)
+        customtkinter.set_appearance_mode(default_mode.lower())
         customtkinter.set_default_color_theme(available_themes_dict[default_theme])
         app_settings['successful_load'] = False
         app_settings['failure_reason'] = str(error_msg)
     return app_settings
 
-def merge_custom_settings(default_settings, custom_settings):
+def merge_custom_settings(default_settings: dict, custom_settings: dict) -> dict: 
     for key in custom_settings:
         if key in default_settings.keys():
             default_settings[key] = custom_settings[key]
     return default_settings
 
-def load_settings(set_file):
+def load_settings(set_file: str):
     app_settings = default_settings
     if not file_exists(set_file):
         create_settings_file(set_file)

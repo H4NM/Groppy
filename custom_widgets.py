@@ -102,7 +102,7 @@ class CustomMessagebox(customtkinter.CTkToplevel):
         self.attributes("-topmost", True)
 
 class RegexHelpMessagebox(customtkinter.CTkToplevel):
-     def __init__(self, main_color: str="", sub_color: str="", first_color: str="", second_color: str="", third_color: str="", text_color:str="", geometry: str="", *args: any, **kwargs: any):
+     def __init__(self, mode: str="", theme: str="", first_color: str="", second_color: str="", third_color: str="", text_color:str="", geometry: str="", *args: any, **kwargs: any):
         super().__init__(*args, **kwargs)
         self.wm_iconbitmap(app_icon)
         self.title(regex_help_window_title)
@@ -112,7 +112,7 @@ class RegexHelpMessagebox(customtkinter.CTkToplevel):
         self.resizable(False,False)
         self.regex_help_sheet = CustomSheet(self,
                         height=420,
-                        theme=main_color+" "+sub_color,
+                        theme=mode+" "+theme,
                         show_x_scrollbar = True,
                         show_y_scrollbar = False,
                         empty_horizontal = False,

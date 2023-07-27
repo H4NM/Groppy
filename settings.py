@@ -8,9 +8,10 @@ window_width: int=1500
 window_height: int=880
 regex_window_width: int=1100
 regex_window_height: int=500
+
 app_icon: str='./img/groppy.ico'
-default_mode: str = 'dark'
-default_theme: str = 'DaynNight'
+default_mode: str = 'Light'
+default_theme: str = 'GhostTrain'
 available_themes_dict: dict = {'Blue': './themes/Blue.json', 
                           'Dark-Blue': './themes/Dark-Blue.json',
                           'DaynNight': './themes/DaynNight.json',
@@ -38,8 +39,8 @@ highlight_fg_color: str='#078dd5'
 maximum_matched_fields: int=14
 
 ### FONTS 
-main_font: str='Arial'
-log_box_font: tuple=('Arial',15,'bold')
+main_font: str='Sans-Serif'
+log_box_font: tuple=(main_font,15,'bold')
 loading_label_size: int=32
 sheet_header_font:tuple=(main_font, 10, 'normal')
 sheet_font: tuple=(main_font, 9, 'normal')
@@ -196,7 +197,7 @@ Since the goal is to make the application easy and nice to use, there's also the
 You can configure {app_title} to start with either 'dark' or 'light' mode. 
 It can have different themes. These may be {available_themes}.
 
-You can also add settings regarding an elasticsearch cluster in order to skip entering the details everytime on start.
+You can also add settings regarding an elasticsearch cluster in order to skip entering the details on start.
 ''',
                     'successful_connection': 'Managed to communicate with elasticsearch node',
                     'unsuccessful_connection': 'Unable to communicate with elasticsearch node',
