@@ -35,7 +35,9 @@ The application requires python 3.11+ in order to perform [atomic grouping and p
 - Configuration file to save settings such as mode, theme, elasticsearch details
 
 ## Themes
-
+<details>
+  <summary>View themes</summary>
+  
 #### TrojanBlue
 ![TrojanBlue](https://github.com/H4NM/Groppy/blob/main/img/theme-7.png)
 
@@ -50,6 +52,9 @@ The application requires python 3.11+ in order to perform [atomic grouping and p
 
 ##### Greengage
 ![Greengage](https://github.com/H4NM/Groppy/blob/main/img/theme-6.png)
+
+</details>
+
 
 ## Settings file
 
