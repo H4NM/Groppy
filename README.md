@@ -34,6 +34,9 @@ The application requires python 3.11+ in order to perform [atomic grouping and p
 - Dark and Light mode
 - Configuration file to save settings such as mode, theme, elasticsearch details
 
+## To Do:
+- [ ] Add client certificate option for ES communication
+
 ## Themes
 <details>
   <summary>View themes</summary>
